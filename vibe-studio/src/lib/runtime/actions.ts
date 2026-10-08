@@ -1,0 +1,30 @@
+// Ported from bolt.diy app/types/actions.ts and app/types/artifact.ts (file/shell/start only).
+
+export type ActionType = 'file' | 'shell' | 'start';
+
+export interface BaseAction {
+	content: string;
+}
+
+export interface FileAction extends BaseAction {
+	type: 'file';
+	filePath: string;
+}
+
+export interface ShellAction extends BaseAction {
+	type: 'shell';
+}
+
+export interface StartAction extends BaseAction {
+	type: 'start';
+}
+
+export type BoltAction = FileAction | ShellAction | StartAction;
+
+export type BoltActionData = BoltAction | BaseAction;
+
+export interface BoltArtifactData {
+	id: string;
+	title: string;
+	type?: string | undefined;
+}
