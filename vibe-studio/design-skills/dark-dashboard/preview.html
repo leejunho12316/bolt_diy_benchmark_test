@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>다크 대시보드 미리보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+:root{--bg:#0B1020;--s:#121A2E;--s2:#1A2440;--line:#243050;--ink:#E6EAF5;--ink2:#A3ADC8;--ink3:#6B7699;--acc:#22D3EE;--up:#34D399;--down:#F87171;--warn:#FBBF24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,sans-serif;display:grid;grid-template-columns:240px 1fr;height:800px;font-variant-numeric:tabular-nums}
+aside{background:var(--s);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.logo{font-weight:800;font-size:18px;margin:0 8px 22px;display:flex;gap:8px;align-items:center}.logo i{width:22px;height:22px;border-radius:6px;background:var(--acc);display:block}
+.lab{font-size:11px;color:var(--ink3);margin:12px 10px 6px;letter-spacing:.08em}
+.m{height:40px;border-radius:6px;display:flex;align-items:center;gap:10px;padding:0 12px;font-size:14px;color:var(--ink2)}.m i{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--ink3);display:block}
+.m.on{background:var(--s2);color:var(--ink)}.m.on i{border-color:var(--acc);background:var(--acc)}
+.top{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;gap:12px}.top h1{font-size:22px;margin:0 auto 0 0}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}.seg span{padding:7px 12px;color:var(--ink2)}.seg span.on{background:var(--s2);color:var(--ink)}
+.btn{background:var(--acc);color:var(--bg);font-weight:600;font-size:13px;height:36px;padding:0 14px;border-radius:6px;display:flex;align-items:center}
+.content{padding:24px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:var(--s);border:1px solid var(--line);border-radius:10px;padding:18px}
+.kpi{grid-column:span 3}.kpi small{font-size:13px;color:var(--ink2);font-weight:600}.kpi b{display:block;font-size:30px;margin:10px 0 8px}
+.d{font-size:12px;font-weight:600;padding:2px 7px;border-radius:999px}.d.u{color:var(--up);background:rgba(52,211,153,.12)}.d.n{color:var(--down);background:rgba(248,113,113,.12)}
+.chart{grid-column:span 8;height:250px;display:flex;flex-direction:column}.chart h3,.list h3{margin:0 0 14px;font-size:14px;color:var(--ink2)}
+.bars{flex:1;display:flex;align-items:flex-end;gap:12px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to top,transparent 0 47px,rgba(36,48,80,.7) 47px 48px)}
+.bars div{flex:1;display:flex;gap:3px;align-items:flex-end;height:100%}.bars span{flex:1;border-radius:3px 3px 0 0}
+.list{grid-column:span 4;height:250px}.li{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--line);color:var(--ink2)}.li b{color:var(--ink);font-weight:500}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+.table{grid-column:span 12;padding:0;overflow:hidden}.tr{display:grid;grid-template-columns:1.2fr 1.5fr 1fr 1fr;padding:12px 18px;border-bottom:1px solid var(--line);font-size:13px}.th{color:var(--ink3);font-size:12px;font-weight:600}.num{text-align:right}
+</style>
+</head>
+<body>
+<aside><div class="logo"><i></i>오더뷰</div><div class="lab">MAIN</div><div class="m on"><i></i>대시보드</div><div class="m"><i></i>주문</div><div class="m"><i></i>고객</div><div class="m"><i></i>상품</div><div class="lab">SYSTEM</div><div class="m"><i></i>설정</div></aside>
+<div><div class="top"><h1>대시보드</h1><div class="seg"><span>오늘</span><span class="on">7일</span><span>30일</span></div><span class="btn">보고서 내보내기</span></div>
+<div class="content">
+<div class="card kpi"><small>매출</small><b>₩48,210,000</b><span class="d u">▲ 4.2%</span></div>
+<div class="card kpi"><small>주문 수</small><b>1,284</b><span class="d u">▲ 1.8%</span></div>
+<div class="card kpi"><small>신규 고객</small><b>312</b><span class="d n">▼ 0.6%</span></div>
+<div class="card kpi"><small>반품률</small><b>2.4%</b><span class="d u">▲ 0.3%</span></div>
+<div class="card chart"><h3>일별 매출 · 주문</h3><div class="bars">
+<div><span style="height:52%;background:#22D3EE"></span><span style="height:38%;background:#818CF8"></span></div><div><span style="height:64%;background:#22D3EE"></span><span style="height:44%;background:#818CF8"></span></div><div><span style="height:48%;background:#22D3EE"></span><span style="height:35%;background:#818CF8"></span></div><div><span style="height:76%;background:#22D3EE"></span><span style="height:58%;background:#818CF8"></span></div><div><span style="height:69%;background:#22D3EE"></span><span style="height:50%;background:#818CF8"></span></div><div><span style="height:88%;background:#22D3EE"></span><span style="height:66%;background:#818CF8"></span></div><div><span style="height:72%;background:#22D3EE"></span><span style="height:54%;background:#818CF8"></span></div>
+</div></div>
+<div class="card list"><h3>최근 활동</h3><div class="li"><b>#10293 결제 완료</b>2분 전</div><div class="li"><b>신규 고객 가입</b>8분 전</div><div class="li"><b>#10288 배송 시작</b>15분 전</div><div class="li"><b>재고 부족 알림</b>32분 전</div></div>
+<div class="card table"><div class="tr th"><span>주문번호</span><span>고객</span><span>상태</span><span class="num">금액</span></div><div class="tr"><span>#10293</span><span>김하늘</span><span><i class="dot" style="background:#34D399"></i>완료</span><span class="num">₩128,000</span></div></div>
+</div></div>
+</body>
+</html>

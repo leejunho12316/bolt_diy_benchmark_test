@@ -1,3 +1,5 @@
+import type Anthropic from '@anthropic-ai/sdk';
+import type { ImageAttachment } from '#lib/attachments.ts';
 // Adapted from bolt.diy app/lib/common/prompts/prompts.ts, rewritten for SvelteKit-only output.
 // Kept free of per-request data so it stays a stable prompt-cache prefix.
 
@@ -20,6 +22,7 @@ Write idiomatic SvelteKit:
 - Svelte 5 runes only: $state, $derived, $effect, $props, {@render children()}; event attributes like onclick (not on:click); no "export let".
 - Shared code in src/lib, imported as $lib/...; server-only code in src/lib/server.
 - Styling with plain CSS in <style> blocks or a global src/app.css imported from +layout.svelte. Do not add Tailwind unless the user asks for it.
+- When a <design_guide> is provided, its tokens, typography and component rules take precedence over your own styling choices.
 - Make the UI polished and complete: thoughtful layout, spacing, typography, empty/loading/error states, responsive at mobile width.
 - Do not touch svelte.config.js, vite.config.ts or tsconfig.json unless strictly necessary.
 </stack>
@@ -96,5 +99,76 @@ export function summarizeArtifacts(content: string) {
 	return content.replace(ARTIFACT_RE, (_match, inner: string) => {
 		const paths = [...inner.matchAll(FILE_PATH_RE)].map((m) => m[1]);
 		return paths.length > 0 ? `[Wrote files: ${[...new Set(paths)].join(', ')}]` : '[Ran project actions]';
+	});
+}
+
+/**
+ * System blocks for a request: the fixed prompt, plus the chosen design template's guide.
+ * Both are cache breakpoints; the guide stays identical for the whole chat so it is cached too.
+ */
+export function buildSystem(designGuide?: string | null): Anthropic.Beta.BetaTextBlockParam[] {
+	const blocks: Anthropic.Beta.BetaTextBlockParam[] = [
+		{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }
+	];
+
+	if (designGuide) {
+		blocks.push({
+			type: 'text',
+			text: `<design_guide>
+The user picked the design template below for this app. Apply it to everything you build:
+- Define its tokens as CSS variables in src/app.css (imported from src/routes/+layout.svelte) and reference only those variables in components.
+- Follow its typography, layout patterns, component specs and checklist. Fonts it names go in a <svelte:head> <link> in +layout.svelte.
+- For arrangement, follow the user's <layout_reference> when present; for colors, type, spacing and component styling, follow this guide.
+- Reproduce the style, never real brand assets (logos, emblems, mascots, organization names).
+- Where it shows plain HTML, translate it into Svelte 5 components.
+
+${designGuide}
+</design_guide>`,
+			cache_control: { type: 'ephemeral' }
+		});
+	}
+
+	return blocks;
+}
+
+export interface ChatTurn {
+	role: 'user' | 'assistant';
+	content: string;
+	/** Images the user attached to this turn. */
+	images?: Pick<ImageAttachment, 'mediaType' | 'data'>[];
+}
+
+/**
+ * History → API messages. Past replies are shortened to a list of written files, the current
+ * project files go in front of the latest request, and a turn's images come before its text
+ * (Claude reads image-then-question best).
+ */
+export function toApiMessages(history: ChatTurn[], files: ProjectFiles): Anthropic.Beta.BetaMessageParam[] {
+	const lastIndex = history.length - 1;
+
+	return history.map((turn, index): Anthropic.Beta.BetaMessageParam => {
+		if (turn.role === 'assistant') {
+			return { role: 'assistant', content: summarizeArtifacts(turn.content) };
+		}
+
+		const context = index === lastIndex ? createFilesContext(files) : '';
+		const text = context ? `${context}\n\n${turn.content}` : turn.content;
+
+		if (!turn.images?.length) {
+			return { role: 'user', content: text };
+		}
+
+		return {
+			role: 'user',
+			content: [
+				...turn.images.map(
+					(image): Anthropic.Beta.BetaImageBlockParam => ({
+						type: 'image',
+						source: { type: 'base64', media_type: image.mediaType, data: image.data }
+					})
+				),
+				{ type: 'text', text }
+			]
+		};
 	});
 }

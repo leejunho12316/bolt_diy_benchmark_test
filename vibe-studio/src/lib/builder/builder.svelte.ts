@@ -2,7 +2,9 @@
 import { FRAME, GRID, blockDef, defaultProps, type Block, type BlockProps, type BlockType, type Layout, type Page } from './types.ts';
 import { MAX_BLOCKS_PER_PAGE, MAX_PAGES, PATH_RE, parseLayout, pruneLinks } from './validate.ts';
 
-const STORAGE_KEY = 'vibe-studio:builder';
+// v2 drafts start with a header and footer. Drafts under the old key predate that and get them added once.
+const STORAGE_KEY = 'vibe-studio:builder:v2';
+const LEGACY_STORAGE_KEY = 'vibe-studio:builder';
 
 const snap = (value: number) => Math.round(value / GRID) * GRID;
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -28,6 +30,25 @@ function chromeBlocks(source?: Page): Block[] {
 	];
 }
 
+/** Gives every page that lacks one a default header (top) and footer (bottom). */
+export function addMissingChrome(layout: Layout) {
+	const home = layout.pages.find((p) => p.path === '/');
+
+	for (const page of layout.pages) {
+		const [header, footer] = chromeBlocks(home);
+
+		if (!page.blocks.some((b) => b.type === 'header')) {
+			page.blocks.unshift(header);
+		}
+
+		if (!page.blocks.some((b) => b.type === 'footer')) {
+			page.blocks.push(footer);
+		}
+	}
+
+	return layout;
+}
+
 function emptyLayout(): Layout {
 	return { frame: { ...FRAME }, pages: [{ id: crypto.randomUUID(), path: '/', blocks: chromeBlocks() }] };
 }
@@ -49,11 +70,16 @@ export class Builder {
 	restore() {
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
+			const legacy = saved ? null : localStorage.getItem(LEGACY_STORAGE_KEY);
 
 			if (saved) {
 				this.layout = parseLayout(JSON.parse(saved));
-				this.currentPageId = this.layout.pages[0].id;
+			} else if (legacy) {
+				this.layout = addMissingChrome(parseLayout(JSON.parse(legacy)));
+				localStorage.removeItem(LEGACY_STORAGE_KEY);
 			}
+
+			this.currentPageId = this.layout.pages[0].id;
 		} catch {
 			// Corrupt or unavailable storage: keep the default layout.
 		}

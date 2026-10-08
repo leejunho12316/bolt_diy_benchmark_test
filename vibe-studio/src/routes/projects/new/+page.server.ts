@@ -2,7 +2,10 @@ import { fail, redirect } from '@sveltejs/kit';
 import { db, schema } from '#lib/server/db/index.ts';
 import { countBlocks, parseLayout } from '#lib/builder/validate.ts';
 import { defaultProps, type Layout } from '#lib/builder/types.ts';
-import type { Actions } from './$types';
+import { listDesigns, resolveDesignChoice } from '#lib/server/design/catalog.ts';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = () => ({ designs: listDesigns() });
 
 /** Chat title from the wireframe: logo text, else the header's site name, ignoring untouched defaults. */
 function projectName(layout: Layout) {
@@ -20,10 +23,16 @@ function projectName(layout: Layout) {
 }
 
 export const actions = {
-	/** Creates a chat from the wireframe; the chat page sends it to the agent as the first message. */
+	/** Creates a chat from the wireframe and the design template picked in the drawer. */
 	start: async ({ request }) => {
-		const raw = (await request.formData()).get('layout');
+		const form = await request.formData();
+		const raw = form.get('layout');
+		const design = resolveDesignChoice(form.get('design'));
 		let layout;
+
+		if (design === undefined) {
+			return fail(400, { error: '알 수 없는 디자인 템플릿입니다' });
+		}
 
 		try {
 			layout = parseLayout(JSON.parse(String(raw)));
@@ -40,7 +49,8 @@ export const actions = {
 		await db.insert(schema.chats).values({
 			id,
 			title: projectName(layout) ?? '새 프로젝트',
-			layout: JSON.stringify(layout)
+			layout: JSON.stringify(layout),
+			design
 		});
 
 		redirect(303, `/chat/${id}`);

@@ -1,49 +1,40 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ANTHROPIC_API_KEY, ANTHROPIC_MODEL } from '$app/env/private';
-import { SYSTEM_PROMPT, createFilesContext, summarizeArtifacts, type ProjectFiles } from './prompt.ts';
+import { ANTHROPIC_MODEL, client } from './client.ts';
+import { buildSystem, toApiMessages, type ChatTurn, type ProjectFiles } from './prompt.ts';
 
-const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-
-export interface ChatTurn {
-	role: 'user' | 'assistant';
-	content: string;
-}
+export type { ChatTurn };
 
 interface StreamOptions {
 	history: ChatTurn[];
 	files: ProjectFiles;
+	/** SKILL.md body of the chat's design template, if one was chosen. */
+	designGuide?: string | null;
 	signal: AbortSignal;
-	onFinish: (text: string) => Promise<void>;
+	/** `tokens` is the billed total (input incl. cache reads/writes + output), 0 if the call failed. */
+	onFinish: (text: string, tokens: number) => Promise<void>;
 }
 
 const MAX_TOKENS_NOTICE =
 	'\n\n> ⚠️ 응답이 최대 길이에 도달해 중간에 끊겼습니다. "계속"이라고 입력하면 이어서 작성합니다.';
 const REFUSAL_NOTICE = '\n\n> ⚠️ 이 요청은 처리할 수 없습니다. 요청 내용을 바꿔 다시 시도해 주세요.';
 
-function toApiMessages(history: ChatTurn[], files: ProjectFiles): Anthropic.Beta.BetaMessageParam[] {
-	const lastIndex = history.length - 1;
-
-	return history.map((turn, index) => {
-		if (turn.role === 'assistant') {
-			return { role: 'assistant', content: summarizeArtifacts(turn.content) };
-		}
-
-		if (index === lastIndex) {
-			const context = createFilesContext(files);
-			return { role: 'user', content: context ? `${context}\n\n${turn.content}` : turn.content };
-		}
-
-		return { role: 'user', content: turn.content };
-	});
+function totalTokens(usage: Anthropic.Beta.BetaUsage) {
+	return (
+		usage.input_tokens +
+		usage.output_tokens +
+		(usage.cache_creation_input_tokens ?? 0) +
+		(usage.cache_read_input_tokens ?? 0)
+	);
 }
 
 /** Streams Claude's reply as plain UTF-8 text and hands the full text to onFinish once it ends. */
-export function streamCompletion({ history, files, signal, onFinish }: StreamOptions) {
+export function streamCompletion({ history, files, designGuide, signal, onFinish }: StreamOptions) {
 	const encoder = new TextEncoder();
 
 	return new ReadableStream<Uint8Array>({
 		async start(controller) {
 			let text = '';
+			let tokens = 0;
 			const emit = (chunk: string) => {
 				text += chunk;
 
@@ -58,7 +49,7 @@ export function streamCompletion({ history, files, signal, onFinish }: StreamOpt
 				{
 					model: ANTHROPIC_MODEL,
 					max_tokens: 64000,
-					system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+					system: buildSystem(designGuide),
 					messages: toApiMessages(history, files),
 					output_config: { effort: 'high' },
 					betas: ['server-side-fallback-2026-07-01'],
@@ -75,6 +66,7 @@ export function streamCompletion({ history, files, signal, onFinish }: StreamOpt
 				}
 
 				const final = await stream.finalMessage();
+				tokens = totalTokens(final.usage);
 
 				if (final.stop_reason === 'max_tokens') {
 					emit(MAX_TOKENS_NOTICE);
@@ -91,7 +83,7 @@ export function streamCompletion({ history, files, signal, onFinish }: StreamOpt
 
 			try {
 				if (text) {
-					await onFinish(text);
+					await onFinish(text, tokens);
 				}
 			} finally {
 				try {

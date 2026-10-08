@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import type { ChatMessage } from '#lib/chat.ts';
+	import { MAX_IMAGES, prepareImage, toDataUrl, type ImageAttachment } from '#lib/attachments.ts';
 	import type { ActionState } from '#lib/stores/workbench.svelte.ts';
 
 	interface Props {
@@ -8,16 +9,129 @@
 		messages: ChatMessage[];
 		/** Set for chats started from the start-page wireframe, which rides along with the first request. */
 		layoutNote?: string | null;
+		/** Title of the design template chosen in the start drawer; its guide goes with every request. */
+		designNote?: string | null;
 		actions: Record<string, ActionState>;
 		busy: boolean;
-		onsend: (text: string) => void;
+		/** Whether the model accepts images: false blocks attaching, null (unknown) lets the server decide. */
+		imageInput?: boolean | null;
+		modelName?: string;
+		onsend: (text: string, images: ImageAttachment[]) => void;
 		onstop: () => void;
 	}
 
-	let { title, messages, layoutNote = null, actions, busy, onsend, onstop }: Props = $props();
+	let {
+		title,
+		messages,
+		layoutNote = null,
+		designNote = null,
+		actions,
+		busy,
+		imageInput = null,
+		modelName = '',
+		onsend,
+		onstop
+	}: Props = $props();
 
 	let input = $state('');
 	let listEl: HTMLDivElement | undefined = $state();
+	let fileInput: HTMLInputElement | undefined = $state();
+
+	let images = $state<ImageAttachment[]>([]);
+	let dragDepth = $state(0);
+	let notice = $state<string | null>(null);
+	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+	const unsupportedText = $derived(`현재 모델${modelName ? `(${modelName})` : ''}은 이미지 입력을 지원하지 않습니다.`);
+
+	function showNotice(text: string) {
+		notice = text;
+		clearTimeout(noticeTimer);
+		noticeTimer = setTimeout(() => (notice = null), 5000);
+	}
+
+	/** Adds dropped, pasted or picked images; a model without image input only gets a notice. */
+	async function addImages(files: File[]) {
+		if (imageInput === false) {
+			showNotice(unsupportedText);
+			return;
+		}
+
+		if (files.length === 0) {
+			return;
+		}
+
+		const room = MAX_IMAGES - images.length;
+
+		if (room <= 0) {
+			showNotice(`이미지는 한 번에 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+			return;
+		}
+
+		const results = await Promise.allSettled(files.slice(0, room).map(prepareImage));
+		const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+
+		images = [...images, ...results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))];
+
+		if (failed) {
+			showNotice(failed.reason instanceof Error ? failed.reason.message : '이미지를 읽지 못했습니다.');
+		} else if (files.length > room) {
+			showNotice(`이미지는 한 번에 ${MAX_IMAGES}장까지 첨부할 수 있어 ${files.length - room}장은 제외했습니다.`);
+		}
+	}
+
+	function attachClick() {
+		if (imageInput === false) {
+			showNotice(unsupportedText);
+		} else {
+			fileInput?.click();
+		}
+	}
+
+	const hasFiles = (event: DragEvent) => event.dataTransfer?.types.includes('Files') ?? false;
+
+	function ondragenter(event: DragEvent) {
+		if (hasFiles(event)) {
+			event.preventDefault();
+			dragDepth++;
+		}
+	}
+
+	function ondragover(event: DragEvent) {
+		if (hasFiles(event)) {
+			event.preventDefault();
+			event.dataTransfer!.dropEffect = 'copy';
+		}
+	}
+
+	function ondragleave(event: DragEvent) {
+		if (hasFiles(event)) {
+			dragDepth = Math.max(0, dragDepth - 1);
+		}
+	}
+
+	function ondrop(event: DragEvent) {
+		if (!hasFiles(event)) {
+			return;
+		}
+
+		event.preventDefault();
+		dragDepth = 0;
+		addImages([...(event.dataTransfer?.files ?? [])].filter((file) => file.type.startsWith('image/')));
+	}
+
+	function onpaste(event: ClipboardEvent) {
+		const files = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith('image/'));
+
+		if (files.length > 0) {
+			event.preventDefault();
+			addImages(files);
+		}
+	}
+
+	function removeImage(index: number) {
+		images = images.filter((_, i) => i !== index);
+	}
 
 	const statusIcon: Record<ActionState['status'], string> = {
 		pending: '○',
@@ -39,12 +153,14 @@
 		event?.preventDefault();
 		const text = input.trim();
 
-		if (!text || busy) {
+		if ((!text && images.length === 0) || busy) {
 			return;
 		}
 
+		const attached = images;
 		input = '';
-		onsend(text);
+		images = [];
+		onsend(text, attached);
 	}
 
 	function onkeydown(event: KeyboardEvent) {
@@ -62,8 +178,16 @@
 	});
 </script>
 
-<section class="chat">
+<section class="chat" class:dragging={dragDepth > 0} aria-label="채팅" {ondragenter} {ondragover} {ondragleave} {ondrop}>
+	{#if dragDepth > 0}
+		<div class="drop-overlay" aria-hidden="true">
+			<span class="drop-icon">⇪</span>
+			{imageInput === false ? '현재 모델은 이미지를 지원하지 않습니다' : '이미지를 놓아 첨부하세요'}
+		</div>
+	{/if}
+
 	<header>
+		<a class="back" href="/projects" aria-label="내 프로젝트로 돌아가기" title="내 프로젝트">‹</a>
 		<span class="logo">◆</span>
 		<h1>{title}</h1>
 	</header>
@@ -72,9 +196,12 @@
 		{#if messages.length === 0}
 			<div class="empty">
 				<p class="empty-title">무엇을 만들어 볼까요?</p>
-				{#if layoutNote}
-					<p class="layout-chip"><span>▦</span> 시작 페이지에서 만든 화면 배치 ({layoutNote})</p>
-					<p>어떤 앱인지 설명해 주세요. 첫 요청에 위 배치가 함께 전달되어, 요소들의 위치 관계를 참고해 만들어 드립니다.</p>
+				{#if layoutNote || designNote}
+					<div class="chips">
+						{#if layoutNote}<span class="layout-chip"><span>▦</span> 화면 배치 ({layoutNote})</span>{/if}
+						{#if designNote}<span class="layout-chip"><span>◐</span> 디자인: {designNote}</span>{/if}
+					</div>
+					<p>어떤 앱인지 설명해 주세요. 위 설정이 요청과 함께 전달되어 배치와 디자인을 참고해 만들어 드립니다.</p>
 				{:else}
 					<p>만들고 싶은 웹앱을 설명하면 SvelteKit 코드로 만들어 오른쪽에 바로 띄워 드립니다.</p>
 				{/if}
@@ -88,8 +215,18 @@
 
 		{#each messages as message, index (message.id)}
 			<article class="message {message.role}">
-				{#if layoutNote && index === 0 && message.role === 'user'}
-					<span class="layout-chip attached"><span>▦</span> 화면 배치 함께 전달 ({layoutNote})</span>
+				{#if (layoutNote || designNote) && index === 0 && message.role === 'user'}
+					<div class="chips attached">
+						{#if layoutNote}<span class="layout-chip"><span>▦</span> 화면 배치 함께 전달 ({layoutNote})</span>{/if}
+						{#if designNote}<span class="layout-chip"><span>◐</span> 디자인: {designNote}</span>{/if}
+					</div>
+				{/if}
+				{#if message.images?.length}
+					<div class="sent-images">
+						{#each message.images as src, i (i)}
+							<a href={src} target="_blank" rel="noreferrer"><img {src} alt="첨부 이미지 {i + 1}" loading="lazy" /></a>
+						{/each}
+					</div>
 				{/if}
 				{#if message.text.trim()}
 					<div class="bubble">{message.text.trim()}</div>
@@ -122,23 +259,60 @@
 		{/each}
 	</div>
 
+	{#if notice}
+		<div class="notice" role="alert">
+			<span>{notice}</span>
+			<button type="button" onclick={() => (notice = null)} aria-label="알림 닫기">✕</button>
+		</div>
+	{/if}
+
 	<form class="composer" onsubmit={submit}>
-		<textarea
-			bind:value={input}
-			{onkeydown}
-			rows="3"
-			placeholder="만들고 싶은 앱이나 바꾸고 싶은 점을 적어 주세요 (Shift+Enter 줄바꿈)"
-		></textarea>
-		{#if busy}
-			<button type="button" class="stop" onclick={onstop}>중지</button>
-		{:else}
-			<button type="submit" disabled={!input.trim()}>보내기</button>
+		{#if images.length > 0}
+			<ul class="attachments" aria-label="첨부한 이미지">
+				{#each images as image, i (i)}
+					<li>
+						<img src={toDataUrl(image)} alt={image.name || `첨부 이미지 ${i + 1}`} />
+						<button type="button" onclick={() => removeImage(i)} aria-label="{image.name || '이미지'} 첨부 취소">✕</button>
+					</li>
+				{/each}
+			</ul>
 		{/if}
+		<div class="composer-row">
+			<button type="button" class="attach" onclick={attachClick} aria-label="이미지 첨부" title="이미지 첨부 (끌어다 놓거나 붙여넣기도 됩니다)">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+					><path d="m21 12-8.6 8.6a5 5 0 0 1-7-7l8.5-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.5 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9" /></svg
+				>
+			</button>
+			<input
+				bind:this={fileInput}
+				type="file"
+				accept="image/png,image/jpeg,image/gif,image/webp"
+				multiple
+				hidden
+				onchange={(e) => {
+					addImages([...(e.currentTarget.files ?? [])]);
+					e.currentTarget.value = '';
+				}}
+			/>
+			<textarea
+				bind:value={input}
+				{onkeydown}
+				{onpaste}
+				rows="3"
+				placeholder="만들고 싶은 앱이나 바꾸고 싶은 점을 적어 주세요. 이미지는 끌어다 놓아 첨부할 수 있어요 (Shift+Enter 줄바꿈)"
+			></textarea>
+			{#if busy}
+				<button type="button" class="stop" onclick={onstop}>중지</button>
+			{:else}
+				<button type="submit" disabled={!input.trim() && images.length === 0}>보내기</button>
+			{/if}
+		</div>
 	</form>
 </section>
 
 <style>
 	.chat {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -154,6 +328,24 @@
 		gap: 0.6rem;
 		padding: 0.9rem 1.1rem;
 		border-bottom: 1px solid var(--border);
+	}
+
+	.back {
+		display: grid;
+		place-items: center;
+		width: 28px;
+		height: 28px;
+		margin-left: -0.35rem;
+		border-radius: 6px;
+		color: var(--muted);
+		font-size: 1.3rem;
+		line-height: 1;
+		text-decoration: none;
+	}
+
+	.back:hover {
+		background: var(--bg);
+		color: var(--accent);
 	}
 
 	.logo {
@@ -215,8 +407,19 @@
 		color: var(--accent);
 	}
 
-	.layout-chip.attached {
-		align-self: flex-end;
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 0.2rem 0 0.6rem;
+	}
+
+	.chips .layout-chip {
+		margin: 0;
+	}
+
+	.chips.attached {
+		justify-content: flex-end;
 		margin: 0;
 	}
 
@@ -321,9 +524,131 @@
 
 	.composer {
 		display: flex;
+		flex-direction: column;
 		gap: 0.5rem;
 		padding: 0.8rem;
 		border-top: 1px solid var(--border);
+	}
+
+	.composer-row {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.attach {
+		display: grid;
+		place-items: center;
+		width: 38px;
+		height: 38px;
+		padding: 0;
+		border: 1px solid var(--border);
+		background: var(--bg);
+		color: var(--muted);
+	}
+
+	.attach:hover {
+		color: var(--accent);
+		border-color: var(--accent);
+	}
+
+	.attachments {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.attachments li {
+		position: relative;
+	}
+
+	.attachments img {
+		display: block;
+		width: 64px;
+		height: 64px;
+		object-fit: cover;
+		border-radius: 8px;
+		border: 1px solid var(--border);
+	}
+
+	.attachments button {
+		position: absolute;
+		top: -6px;
+		right: -6px;
+		width: 22px;
+		height: 22px;
+		padding: 0;
+		border-radius: 50%;
+		background: var(--text);
+		color: var(--panel);
+		font-size: 0.65rem;
+		line-height: 1;
+	}
+
+	.sent-images {
+		align-self: flex-end;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 0.4rem;
+		max-width: 85%;
+	}
+
+	.sent-images img {
+		display: block;
+		width: 96px;
+		height: 96px;
+		object-fit: cover;
+		border-radius: 10px;
+		border: 1px solid var(--border);
+	}
+
+	.notice {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5rem;
+		margin: 0 0.8rem;
+		padding: 0.6rem 0.75rem;
+		border: 1px solid var(--danger);
+		border-radius: 8px;
+		background: var(--danger-soft);
+		color: var(--danger);
+		font-size: 0.85rem;
+		word-break: keep-all;
+	}
+
+	.notice span {
+		flex: 1;
+	}
+
+	.notice button {
+		padding: 0 0.2rem;
+		background: none;
+		color: inherit;
+		font-size: 0.8rem;
+	}
+
+	.drop-overlay {
+		position: absolute;
+		inset: 0.5rem;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border: 2px dashed var(--accent);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--panel) 88%, transparent);
+		color: var(--accent);
+		font-weight: 600;
+		pointer-events: none;
+	}
+
+	.drop-icon {
+		font-size: 2rem;
 	}
 
 	textarea {
