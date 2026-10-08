@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { EXAMPLES, type ExampleSlug } from '#lib/examples/catalog.ts';
+	import '#lib/examples/themes.css';
+	import { EXAMPLES, EXAMPLE_FONTS_URL, type ExampleSlug } from '#lib/examples/catalog.ts';
 
 	const SWIPE_PX = 60;
 
@@ -46,15 +47,26 @@
 
 <svelte:head>
 	<title>AI 따라해보기 · Vibe Studio</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link rel="stylesheet" href={EXAMPLE_FONTS_URL} crossorigin="anonymous" />
 </svelte:head>
+
+<!-- Each preview is a miniature of its example, drawn with that example's design skill tokens. -->
 
 {#snippet chatbotPreview()}
 	<div class="pv pv-chat">
-		<div class="pv-bar">현장 문서 도우미 <span>현장 문서 32건 학습</span></div>
-		<div class="pv-body">
+		<div class="pv-chat-side">
+			<span class="pebble" aria-hidden="true"></span>
+			<strong>현장 문서 도우미</strong>
+			<span class="doc used">공정표_10월.xlsx</span>
+			<span class="doc used">작업일보_1006.pdf</span>
+			<span class="doc">안전관리계획서.pdf</span>
+		</div>
+		<div class="pv-chat-main">
 			<p class="bubble me">이번 주 3공구 콘크리트 타설 일정 알려줘</p>
 			<p class="bubble bot">
-				3공구 타설은 <strong>10월 8일(수) 오전 7시</strong>에 예정되어 있어요. 우천 시 9일로 미뤄지며, 펌프카 2대가 배정되어 있습니다.
+				3공구 타설은 <strong>10월 8일(수) 오전 7시</strong>에 예정되어 있어요. 우천 시 9일로 미뤄집니다.
 				<span class="tags"><span>공정표_10월.xlsx</span><span>작업일보_1006.pdf</span></span>
 			</p>
 			<p class="bubble me">안전 점검 담당자는 누구야?</p>
@@ -63,26 +75,22 @@
 {/snippet}
 
 {#snippet excelPreview()}
-	<div class="pv pv-split">
-		<div class="pv-col">
-			<span class="pv-file">자재_입출고_2026.xlsx</span>
-			<table class="pv-table">
-				<thead><tr><th>현장</th><th>자재</th><th>수량</th><th>단위</th></tr></thead>
+	<div class="pv pv-mono">
+		<span class="mono-meta">FILE · 자재_입출고_2026.xlsx</span>
+		<p class="mono-title">현장별 철근 사용량 합계는?</p>
+		<div class="mono-grid">
+			<table>
+				<thead><tr><th>현장</th><th>자재</th><th>수량</th></tr></thead>
 				<tbody>
-					<tr><td>A현장</td><td>철근</td><td>42</td><td>톤</td></tr>
-					<tr><td>B현장</td><td>철근</td><td>27</td><td>톤</td></tr>
-					<tr><td>A현장</td><td>레미콘</td><td>310</td><td>㎥</td></tr>
-					<tr><td>C현장</td><td>철근</td><td>18</td><td>톤</td></tr>
-					<tr><td>B현장</td><td>거푸집</td><td>120</td><td>장</td></tr>
+					<tr class="b"><td>A현장</td><td>철근</td><td>42</td></tr>
+					<tr class="b"><td>B현장</td><td>철근</td><td>27</td></tr>
+					<tr><td>A현장</td><td>레미콘</td><td>310</td></tr>
+					<tr class="b"><td>C현장</td><td>철근</td><td>18</td></tr>
 				</tbody>
 			</table>
-		</div>
-		<div class="pv-col">
-			<p class="bubble me">현장별 철근 사용량 합계는?</p>
-			<div class="pv-card">
-				<span>A현장이 가장 많이 사용했어요.</span>
-				{#each [['A현장', 100, '42톤'], ['B현장', 64, '27톤'], ['C현장', 43, '18톤']] as [label, w, value] (label)}
-					<div class="pv-barrow"><span>{label}</span><span class="meter"><span style:width="{w}%"></span></span><span>{value}</span></div>
+			<div class="mono-bars">
+				{#each [['01', 'A현장', 100, '42톤'], ['02', 'B현장', 64, '27톤'], ['03', 'C현장', 43, '18톤']] as [no, label, w, value] (label)}
+					<div><span class="mono-meta">{no}</span><span>{label}</span><span class="meter"><span style:width="{w}%"></span></span><span>{value}</span></div>
 				{/each}
 			</div>
 		</div>
@@ -90,69 +98,71 @@
 {/snippet}
 
 {#snippet buildPreview()}
-	<div class="pv pv-three">
-		<div class="pv-card">
-			<span class="pv-step">1분 · 말로 요청</span>
-			<p class="pv-req">협력업체가 안전 교육 이수증을 올리고, 담당자가 확인하는 페이지 만들어줘</p>
+	<div class="pv pv-brutal">
+		<div class="nb-box yellow">
+			<span class="nb-label">STEP 1</span>
+			<strong class="nb-title">말로 요청</strong>
+			<p>협력업체가 안전 교육 이수증을 올리고, 담당자가 확인하는 페이지 만들어줘</p>
 		</div>
-		<div class="pv-card">
-			<span class="pv-step">3분 · AI가 만드는 중</span>
-			<span class="pv-check done">요청 내용 확인</span>
-			<span class="pv-check done">올리기 화면 만들기</span>
-			<span class="pv-check current">확인 화면 만드는 중</span>
-			<span class="pv-check">검토</span>
+		<div class="nb-box pink">
+			<span class="nb-label">STEP 2</span>
+			<strong class="nb-title">AI가 만드는 중</strong>
+			<span class="nb-step done">✓ 요청 내용 확인</span>
+			<span class="nb-step done">✓ 올리기 화면 만들기</span>
+			<span class="nb-step current">3 확인 화면 만드는 중</span>
 		</div>
-		<div class="pv-card pv-app">
-			<span class="pv-apphead">안전 교육 이수증 확인</span>
-			<span class="pv-row">○○건설 · 김OO <em class="ok">확인 완료</em></span>
-			<span class="pv-row">△△전기 · 박OO <em class="wait">확인 대기</em></span>
-			<span class="pv-row">□□설비 · 이OO <em class="wait">확인 대기</em></span>
-			<span class="pv-done">5분 · 완성</span>
+		<div class="nb-box white">
+			<span class="nb-sticker">5분 완성!</span>
+			<strong class="nb-title">이수증 확인</strong>
+			<span class="nb-row">○○건설 <em class="ok">확인 완료</em></span>
+			<span class="nb-row">△△전기 <em>대기</em></span>
+			<span class="nb-row">□□설비 <em>대기</em></span>
 		</div>
 	</div>
 {/snippet}
 
 {#snippet dashboardPreview()}
-	<div class="pv pv-dash">
-		<div class="pv-kpis">
-			{#each [['진행 현장', '14'], ['이번 달 기성', '38.2억'], ['미결 계약', '6'], ['협력업체', '87']] as [label, value] (label)}
-				<div class="pv-card"><span class="pv-label">{label}</span><strong>{value}</strong></div>
-			{/each}
+	<div class="pv pv-dark">
+		<div class="dd-side">
+			<span class="dd-brand">◆ 현장 통합관리</span>
+			<span class="dd-menu active">대시보드</span>
+			<span class="dd-menu">현장</span>
+			<span class="dd-menu">거래처</span>
 		</div>
-		<div class="pv-dashrow">
-			<div class="pv-card">
-				<span class="pv-label">월별 기성 금액</span>
-				<div class="pv-chart">
-					{#each [40, 55, 48, 70, 62, 88] as h, i (i)}
+		<div class="dd-main">
+			<div class="dd-kpis">
+				{#each [['이번 달 기성', '20.6억', '▲ 3.6억'], ['평균 공정률', '44%', ''], ['미결 계약', '6', ''], ['협력업체', '87', '']] as [label, value, badge] (label)}
+					<div class="dd-card"><span class="dd-label">{label}</span><strong>{value}</strong>{#if badge}<span class="dd-up">{badge}</span>{/if}</div>
+				{/each}
+			</div>
+			<div class="dd-card dd-chart">
+				<span class="dd-label">월별 기성 금액</span>
+				<div class="dd-bars">
+					{#each [48, 64, 66, 79, 83, 100] as h, i (i)}
 						<span class:last={i === 5} style:height="{h}%"></span>
 					{/each}
 				</div>
-			</div>
-			<div class="pv-card">
-				<span class="pv-label">거래처 최근 연락</span>
-				<span class="pv-row">○○건설 <em>오늘</em></span>
-				<span class="pv-row">△△전기 <em>어제</em></span>
-				<span class="pv-row">□□설비 <em>3일 전</em></span>
-				<span class="pv-row">◇◇자재 <em class="late">2주 전 · 연락 필요</em></span>
 			</div>
 		</div>
 	</div>
 {/snippet}
 
 {#snippet comparePreview()}
-	<div class="pv pv-compare">
-		<p class="pv-quote">“화면이 좀 밝았으면 좋겠습니다”</p>
-		<div class="pv-ba">
-			<div class="pv-screen dark">
-				<span class="pv-apphead">현장 작업일보 · 적용 전</span>
-				<div class="pv-blocks"><span></span><span></span><span></span></div>
-				<div class="pv-lines"><span></span><span></span><span></span></div>
+	<div class="pv pv-editorial">
+		<span class="ed-label">REQUEST NO. 01</span>
+		<p class="ed-quote">“화면이 좀 밝았으면 좋겠습니다”</p>
+		<div class="ed-rule" aria-hidden="true"></div>
+		<div class="ed-ba">
+			<div class="ed-screen dark">
+				<span class="ed-head">현장 작업일보 · 적용 전</span>
+				<div class="ed-blocks"><span></span><span></span><span></span></div>
+				<div class="ed-lines"><span></span><span></span><span></span></div>
 			</div>
-			<span class="pv-arrow" aria-hidden="true">→</span>
-			<div class="pv-screen light">
-				<span class="pv-apphead">현장 작업일보 · 적용 후</span>
-				<div class="pv-blocks"><span></span><span></span><span></span></div>
-				<div class="pv-lines"><span></span><span></span><span></span></div>
+			<span class="ed-arrow" aria-hidden="true">→</span>
+			<div class="ed-screen light">
+				<span class="ed-head">현장 작업일보 · 적용 후</span>
+				<div class="ed-blocks"><span></span><span></span><span></span></div>
+				<div class="ed-lines"><span></span><span></span><span></span></div>
 			</div>
 		</div>
 	</div>
@@ -199,13 +209,14 @@
 							draggable="false"
 							onclick={(e) => onCardClick(e, i)}
 						>
-							<div class="preview" aria-hidden="true">{@render preview(example.slug)}</div>
+							<div class="preview theme-{example.design}" aria-hidden="true">{@render preview(example.slug)}</div>
 							<div class="caption">
 								<span class="no">{example.no}</span>
 								<span class="text">
 									<strong>{example.title}</strong>
 									<span>{example.summary}</span>
 								</span>
+								<span class="design">{example.designTitle}</span>
 								<span class="cta">직접 써 보기 →</span>
 							</div>
 						</a>
@@ -241,6 +252,7 @@
 </div>
 
 <style>
+	/* Page chrome uses the app tokens from +layout.svelte. */
 	.page {
 		min-height: 100vh;
 		min-height: 100dvh;
@@ -382,7 +394,6 @@
 
 	.preview {
 		height: 400px;
-		background: var(--bg);
 		overflow: hidden;
 	}
 
@@ -415,8 +426,18 @@
 		color: var(--muted);
 	}
 
-	.cta {
+	.design {
 		margin-left: auto;
+		flex: none;
+		padding: 0.2rem 0.6rem;
+		border-radius: 999px;
+		background: var(--accent-soft);
+		color: var(--accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	.cta {
 		flex: none;
 		font-weight: 700;
 		color: var(--accent);
@@ -501,385 +522,501 @@
 		filter: brightness(1.08);
 	}
 
-	/* Static previews inside the cards */
+	/* Previews: everything below reads the theme tokens of the .theme-* scope on .preview. */
 	.pv {
 		height: 100%;
 		box-sizing: border-box;
-		font-size: 0.9rem;
+		font-size: 14px;
 	}
 
 	.pv p {
 		margin: 0;
 	}
 
-	.pv-card {
+	/* nature-green */
+	.pv-chat {
+		display: grid;
+		grid-template-columns: 240px 1fr;
+		gap: 20px;
+		padding: 24px;
+	}
+
+	.pv-chat-side {
 		display: flex;
 		flex-direction: column;
-		gap: 0.6rem;
-		padding: 1rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--panel);
+		gap: 10px;
+		padding: 20px;
+		border-radius: var(--radius);
+		background: var(--sage);
+	}
+
+	.pv-chat-side strong {
+		font-family: var(--font-serif);
+		font-size: 18px;
+		color: var(--forest);
+	}
+
+	.pebble {
+		width: 44px;
+		height: 44px;
+		border-radius: var(--pebble);
+		background: var(--forest);
+	}
+
+	.doc {
+		padding: 8px 12px;
+		border-radius: var(--radius-pill);
+		background: var(--surface);
+		color: var(--ink-2);
+		font-size: 13px;
+	}
+
+	.doc.used {
+		background: var(--forest);
+		color: var(--surface);
+		font-weight: 600;
+	}
+
+	.pv-chat-main {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 20px;
+		border-radius: 28px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
 	}
 
 	.bubble {
-		max-width: 70%;
-		padding: 0.75rem 1rem;
-		border-radius: 10px;
+		max-width: 80%;
+		padding: 12px 16px;
+		border-radius: var(--radius);
 		line-height: 1.7;
 	}
 
 	.bubble.me {
 		align-self: flex-end;
-		background: var(--accent-soft);
+		border-bottom-right-radius: 6px;
+		background: var(--sage-2);
 	}
 
 	.bubble.bot {
 		align-self: flex-start;
-		border: 1px solid var(--border);
-		background: var(--panel);
+		border-bottom-left-radius: 6px;
+		background: var(--bg);
 	}
 
 	.tags {
 		display: flex;
-		gap: 0.4rem;
-		margin-top: 0.6rem;
+		gap: 6px;
+		margin-top: 8px;
 	}
 
 	.tags span {
-		padding: 0.1rem 0.5rem;
-		border-radius: 4px;
-		background: var(--accent-soft);
-		color: var(--accent);
-		font-size: 0.75rem;
-		font-weight: 700;
+		padding: 2px 10px;
+		border-radius: var(--radius-pill);
+		background: var(--sage-2);
+		color: var(--forest);
+		font-size: 12px;
+		font-weight: 600;
 	}
 
-	.pv-chat {
+	/* minimal-mono */
+	.pv-mono {
 		display: flex;
 		flex-direction: column;
+		gap: 16px;
+		padding: 36px 40px;
 	}
 
-	.pv-bar {
-		display: flex;
-		padding: 0.85rem 1.5rem;
-		background: var(--accent);
-		color: var(--panel);
+	.mono-meta {
+		font-family: var(--font-mono);
+		font-size: 12px;
+		letter-spacing: 0.04em;
+		color: var(--ink-3);
+	}
+
+	.mono-title {
+		padding-bottom: 16px;
+		border-bottom: 1px solid var(--ink);
+		font-size: 36px;
 		font-weight: 700;
+		letter-spacing: -0.03em;
 	}
 
-	.pv-bar span {
-		margin-left: auto;
-		font-size: 0.75rem;
-		font-weight: 400;
-	}
-
-	.pv-body {
-		display: flex;
-		flex-direction: column;
-		gap: 0.9rem;
-		padding: 1.5rem;
-	}
-
-	.pv-split {
+	.mono-grid {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
+		gap: 40px;
 	}
 
-	.pv-col {
+	.pv-mono table {
+		border-collapse: collapse;
+	}
+
+	.pv-mono th {
+		padding: 8px 4px;
+		border-bottom: 1px solid var(--ink);
+		font-family: var(--font-mono);
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--ink-2);
+		text-align: left;
+	}
+
+	.pv-mono td {
+		padding: 8px 4px;
+		border-bottom: 1px solid var(--line);
+		color: var(--ink-3);
+	}
+
+	.pv-mono tr.b td {
+		color: var(--ink);
+		font-weight: 700;
+	}
+
+	.mono-bars {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
-		padding: 1.5rem;
+		border-top: 1px solid var(--line);
 	}
 
-	.pv-col:first-child {
-		border-right: 1px solid var(--border);
-	}
-
-	.pv-file {
-		font-weight: 700;
-		color: var(--success);
-	}
-
-	.pv-table {
-		border-collapse: collapse;
-		background: var(--panel);
-		border: 1px solid var(--border);
-		font-size: 0.82rem;
-	}
-
-	.pv-table th,
-	.pv-table td {
-		padding: 0.5rem;
-		text-align: left;
-		border-top: 1px solid var(--border);
-	}
-
-	.pv-table th {
-		background: var(--accent-soft);
-	}
-
-	.pv-barrow {
+	.mono-bars > div {
 		display: grid;
-		grid-template-columns: 56px 1fr 44px;
-		gap: 0.5rem;
+		grid-template-columns: 28px 56px 1fr 44px;
+		gap: 8px;
 		align-items: center;
+		min-height: 44px;
+		border-bottom: 1px solid var(--line);
 	}
 
 	.meter {
-		height: 14px;
+		height: 8px;
+		background: var(--paper-2);
 	}
 
 	.meter span {
 		display: block;
 		height: 100%;
-		background: var(--accent);
+		background: var(--ink);
 	}
 
-	.pv-three {
+	/* neo-brutal */
+	.pv-brutal {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 1.25rem;
-		padding: 2rem;
+		gap: 24px;
+		padding: 32px 36px 40px;
 	}
 
-	.pv-step {
-		font-size: 0.8rem;
-		font-weight: 700;
-		color: var(--accent);
-	}
-
-	.pv-req {
-		padding: 0.75rem;
-		border-radius: 8px;
-		background: var(--accent-soft);
-		line-height: 1.7;
-	}
-
-	.pv-check {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		color: var(--muted);
-	}
-
-	.pv-check::before {
-		content: '';
-		width: 16px;
-		height: 16px;
-		border-radius: 50%;
-		border: 2px solid var(--border);
-	}
-
-	.pv-check.done {
-		color: var(--text);
-	}
-
-	.pv-check.done::before {
-		border-color: var(--success);
-		background: var(--success);
-	}
-
-	.pv-check.current {
-		color: var(--accent);
-		font-weight: 700;
-	}
-
-	.pv-check.current::before {
-		border-color: var(--accent);
-	}
-
-	.pv-app {
-		padding: 0;
-		overflow: hidden;
-	}
-
-	.pv-apphead {
-		padding: 0.6rem 0.9rem;
-		background: var(--accent);
-		color: var(--panel);
-		font-size: 0.8rem;
-		font-weight: 700;
-	}
-
-	.pv-row {
-		display: flex;
-		justify-content: space-between;
-		gap: 0.5rem;
-		padding: 0.35rem 0;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.82rem;
-	}
-
-	.pv-app .pv-row {
-		margin: 0 0.9rem;
-	}
-
-	.pv-row em {
-		font-style: normal;
-		color: var(--muted);
-	}
-
-	.pv-row em.ok {
-		color: var(--success);
-		font-weight: 700;
-	}
-
-	.pv-row em.wait {
-		color: var(--warning);
-		font-weight: 700;
-	}
-
-	.pv-row em.late {
-		color: var(--danger);
-		font-weight: 700;
-	}
-
-	.pv-done {
-		margin: auto 0.9rem 0.9rem;
-		padding: 0.5rem;
-		border-radius: 6px;
-		background: var(--accent);
-		color: var(--panel);
-		font-size: 0.8rem;
-		font-weight: 700;
-		text-align: center;
-	}
-
-	.pv-dash {
+	.nb-box {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.5rem;
+		gap: 10px;
+		padding: 20px;
+		border: var(--border);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+		font-weight: 500;
 	}
 
-	.pv-kpis {
+	.nb-box.yellow {
+		background: var(--yellow);
+	}
+
+	.nb-box.pink {
+		background: var(--pink);
+	}
+
+	.nb-box.white {
+		background: var(--white);
+	}
+
+	.nb-label {
+		font-family: var(--font-mono);
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	.nb-title {
+		font-family: var(--font-display);
+		font-size: 24px;
+		font-weight: 400;
+		line-height: 1.1;
+	}
+
+	.nb-box p {
+		padding: 10px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		line-height: 1.6;
+	}
+
+	.nb-step {
+		padding: 6px 8px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		font-weight: 700;
+	}
+
+	.nb-step.done {
+		background: var(--green);
+	}
+
+	.nb-step.current {
+		box-shadow: var(--shadow-sm);
+	}
+
+	.nb-sticker {
+		position: absolute;
+		top: -18px;
+		right: -10px;
+		padding: 8px 12px;
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--blue);
+		font-family: var(--font-display);
+		font-size: 16px;
+		transform: rotate(6deg);
+	}
+
+	.nb-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 6px 0;
+		border-bottom: var(--border-thin);
+		font-weight: 700;
+	}
+
+	.nb-row em {
+		font-style: normal;
+		font-family: var(--font-mono);
+		font-size: 12px;
+	}
+
+	.nb-row em.ok {
+		padding: 0 4px;
+		background: var(--green);
+	}
+
+	/* dark-dashboard */
+	.pv-dark {
+		display: grid;
+		grid-template-columns: 180px 1fr;
+	}
+
+	.dd-side {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 20px 12px;
+		border-right: 1px solid var(--line);
+		background: var(--surface);
+	}
+
+	.dd-brand {
+		padding: 0 8px 12px;
+		font-weight: 700;
+		color: var(--accent);
+	}
+
+	.dd-menu {
+		padding: 8px 12px;
+		border-radius: var(--radius-sm);
+		color: var(--ink-2);
+	}
+
+	.dd-menu.active {
+		background: var(--surface-2);
+		color: var(--ink);
+		box-shadow: inset 3px 0 0 var(--accent);
+	}
+
+	.dd-main {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 24px;
+	}
+
+	.dd-kpis {
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 0.75rem;
+		gap: 12px;
 	}
 
-	.pv-kpis strong {
-		font-size: 1.5rem;
+	.dd-card {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: 14px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
 	}
 
-	.pv-label {
-		font-size: 0.78rem;
-		font-weight: 700;
-		color: var(--muted);
+	.dd-card strong {
+		font-size: 24px;
+		font-variant-numeric: tabular-nums;
 	}
 
-	.pv-dashrow {
+	.dd-label {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--ink-2);
+	}
+
+	.dd-up {
+		align-self: flex-start;
+		padding: 1px 6px;
+		border-radius: 4px;
+		background: rgb(52 211 153 / 0.12);
+		color: var(--up);
+		font-size: 11px;
+		font-weight: 600;
+	}
+
+	.dd-chart {
 		flex: 1;
-		display: grid;
-		grid-template-columns: 1.4fr 1fr;
-		gap: 0.75rem;
 	}
 
-	.pv-chart {
+	.dd-bars {
 		flex: 1;
 		display: flex;
 		align-items: flex-end;
-		gap: 0.6rem;
+		gap: 14px;
+		padding: 0 8px;
+		background: repeating-linear-gradient(to top, var(--line) 0 1px, transparent 1px 40px);
 	}
 
-	.pv-chart span {
+	.dd-bars span {
 		flex: 1;
-		background: var(--accent-soft);
+		border-radius: 4px 4px 0 0;
+		background: var(--chart-2);
 	}
 
-	.pv-chart span.last {
-		background: var(--accent);
+	.dd-bars span.last {
+		background: var(--chart-1);
 	}
 
-	.pv-compare {
+	/* warm-editorial */
+	.pv-editorial {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.75rem;
+		gap: 12px;
+		padding: 32px 40px;
 	}
 
-	.pv-quote {
-		align-self: center;
-		padding: 0.6rem 1.1rem;
-		border-radius: 10px;
-		background: var(--accent-soft);
-		font-size: 1rem;
+	.ed-label {
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		color: var(--accent-ink);
 	}
 
-	.pv-ba {
+	.ed-quote {
+		font-family: var(--font-serif);
+		font-size: 28px;
+		font-weight: 700;
+	}
+
+	.ed-rule {
+		height: 7px;
+		border-top: 2px solid var(--ink);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.ed-ba {
 		flex: 1;
 		display: grid;
 		grid-template-columns: 1fr 48px 1fr;
-		align-items: stretch;
+		margin-top: 8px;
 	}
 
-	.pv-arrow {
+	.ed-arrow {
 		align-self: center;
 		text-align: center;
-		font-size: 1.6rem;
+		font-family: var(--font-serif);
+		font-size: 28px;
 		color: var(--accent);
 	}
 
-	.pv-screen {
+	.ed-screen {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
-		border-radius: 10px;
+		gap: 12px;
+		border-radius: var(--radius);
 		overflow: hidden;
+		box-shadow: var(--shadow);
+	}
+
+	.ed-head {
+		padding: 10px 14px;
+		font-family: var(--font-serif);
+		font-size: 14px;
+		font-weight: 700;
+	}
+
+	.ed-blocks {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 8px;
+		padding: 0 14px;
+	}
+
+	.ed-blocks span {
+		height: 52px;
+		border-radius: var(--radius);
+	}
+
+	.ed-lines {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 0 14px;
+	}
+
+	.ed-lines span {
+		height: 12px;
+	}
+
+	.ed-lines span:last-child {
+		width: 70%;
 	}
 
 	/* The dark "before" screen is the subject of the demo, not app chrome. */
-	.pv-screen.dark {
+	.ed-screen.dark {
 		background: #16181b;
 	}
 
-	.pv-screen.dark .pv-apphead {
+	.ed-screen.dark .ed-head {
 		background: #0e0f11;
 		color: #8a949e;
 	}
 
-	.pv-screen.light {
-		border: 1px solid var(--border);
-		background: var(--panel);
-	}
-
-	.pv-blocks {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-		padding: 0 0.9rem;
-	}
-
-	.pv-blocks span {
-		height: 56px;
-		border-radius: 6px;
-	}
-
-	.pv-lines {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 0 0.9rem;
-	}
-
-	.pv-lines span {
-		height: 14px;
-	}
-
-	.pv-lines span:last-child {
-		width: 70%;
-	}
-
-	.dark .pv-blocks span,
-	.dark .pv-lines span {
+	.ed-screen.dark .ed-blocks span,
+	.ed-screen.dark .ed-lines span {
 		background: #202327;
 	}
 
-	.light .pv-blocks span,
-	.light .pv-lines span {
-		background: var(--bg);
+	.ed-screen.light {
+		background: var(--card);
+	}
+
+	.ed-screen.light .ed-head {
+		border-bottom: 1px solid var(--line);
+		color: var(--ink);
+	}
+
+	.ed-screen.light .ed-blocks span {
+		background: var(--paper);
+	}
+
+	.ed-screen.light .ed-lines span {
+		background: var(--paper-2);
 	}
 
 	@media (max-width: 800px) {
@@ -904,17 +1041,33 @@
 			padding: 1rem;
 		}
 
-		.cta {
+		.design {
 			margin-left: 0;
 		}
 
-		.pv-split,
-		.pv-three,
-		.pv-dashrow {
+		.pv-chat,
+		.mono-grid,
+		.pv-brutal,
+		.pv-dark {
 			grid-template-columns: 1fr;
 		}
 
-		.pv-kpis {
+		.pv-chat-side,
+		.dd-side {
+			display: none;
+		}
+
+		.pv-mono,
+		.pv-brutal,
+		.pv-editorial {
+			padding: 20px;
+		}
+
+		.mono-title {
+			font-size: 24px;
+		}
+
+		.dd-kpis {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}

@@ -30,7 +30,7 @@
 
 	const CRM = [
 		{ company: '○○건설', contact: '김OO 과장', last: '오늘', status: '견적 요청', tone: 'accent' },
-		{ company: '△△전기', contact: '박OO 대리', last: '어제', status: '계약 진행', tone: 'success' },
+		{ company: '△△전기', contact: '박OO 대리', last: '어제', status: '계약 진행', tone: 'olive' },
 		{ company: '□□설비', contact: '이OO 부장', last: '3일 전', status: '견적 요청', tone: 'accent' },
 		{ company: '◇◇자재', contact: '최OO 차장', last: '2주 전', status: '연락 필요', tone: 'danger' },
 		{ company: '☆☆철강', contact: '정OO 과장', last: '5일 전', status: '견적 요청', tone: 'accent' }
@@ -106,10 +106,12 @@
 
 <div class="compare">
 	<section class="scenarios" aria-labelledby="sm-list">
+		<span class="label">BEFORE · AFTER</span>
 		<h2 id="sm-list">요청을 골라 보세요</h2>
+		<div class="rule" aria-hidden="true"></div>
 		{#each SCENARIOS as item, i (item.no)}
 			<button type="button" class="scenario" aria-pressed={i === current} onclick={() => pick(i)}>
-				<span class="no">{item.no}</span>
+				<span class="label">REQUEST NO. {item.no}</span>
 				<strong>{item.title}</strong>
 				<span class="request">“{item.request}”</span>
 			</button>
@@ -126,10 +128,9 @@
 			<button type="button" class="apply" onclick={apply} disabled={applying}>요청 적용해 보기</button>
 		</div>
 
-		<div class="browser">
+		<div class="frame">
 			<div class="chrome">
-				<span class="dot"></span><span class="dot"></span>
-				<span class="url">미리보기 · {scenario.path}</span>
+				<span class="url">{scenario.path}</span>
 				<span class="state" class:after>{applying ? '바꾸는 중' : after ? '적용 후' : '적용 전'}</span>
 			</div>
 
@@ -181,7 +182,7 @@
 				{:else if !after}
 					<div class="sketch">
 						<svg viewBox="0 0 760 500" role="img" aria-label="종이에 손으로 그린 자재 요청 화면 스케치">
-							<path d="M22 24 C200 18 560 30 738 22 L742 478 C520 484 220 472 18 480 Z" fill="#ffffff" stroke="#3a3f45" stroke-width="2.5" />
+							<path d="M22 24 C200 18 560 30 738 22 L742 478 C520 484 220 472 18 480 Z" fill="#fffdf8" stroke="#3a3f45" stroke-width="2.5" />
 							<path d="M40 44 C260 40 500 48 720 42 L722 96 C500 100 240 92 38 98 Z" fill="none" stroke="#3a3f45" stroke-width="2.5" />
 							<text x="60" y="80" font-size="34">자재 요청</text>
 							<text x="590" y="80" font-size="26" class="soft">현장명 ▾</text>
@@ -191,7 +192,7 @@
 							<path d="M328 152 C380 150 420 154 460 151 L461 192 C420 194 370 190 327 193 Z" fill="none" stroke="#3a3f45" stroke-width="2" />
 							<text x="490" y="140" font-size="26" class="soft">필요한 날</text>
 							<path d="M488 152 C560 150 610 154 640 151 L642 192 C600 195 540 190 487 193 Z" fill="none" stroke="#3a3f45" stroke-width="2" />
-							<path d="M600 214 C640 211 690 215 720 212 L721 254 C690 257 640 252 599 255 Z" fill="#e6e0fb" stroke="#3a3f45" stroke-width="2.5" />
+							<path d="M600 214 C640 211 690 215 720 212 L721 254 C690 257 640 252 599 255 Z" fill="#efe6d6" stroke="#3a3f45" stroke-width="2.5" />
 							<text x="628" y="244" font-size="28">요청!</text>
 							<path d="M40 284 C300 280 480 288 720 282" fill="none" stroke="#3a3f45" stroke-width="2" />
 							<text x="60" y="318" font-size="26" class="soft">요청 목록</text>
@@ -199,7 +200,7 @@
 							<text x="64" y="370" font-size="24">철근 D13 · 5톤 · 10/8</text><text x="600" y="370" font-size="24">대기</text>
 							<path d="M56 388 C280 384 500 392 720 386" fill="none" stroke="#8a949e" stroke-width="1.8" />
 							<text x="64" y="422" font-size="24">레미콘 · 30㎥ · 10/9</text><text x="600" y="422" font-size="24">승인 ✓</text>
-							<path d="M520 222 C470 250 430 300 360 300" fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 5" />
+							<path d="M520 222 C470 250 430 300 360 300" fill="none" stroke="#b5562f" stroke-width="2" stroke-dasharray="6 5" />
 							<text x="250" y="262" font-size="24" class="note">누르면 아래에 추가</text>
 						</svg>
 					</div>
@@ -220,7 +221,7 @@
 										<span>{req.name}</span>
 										<span>{req.qty}</span>
 										<span class="muted">{req.date}</span>
-										<span class="status" class:success={req.approved} class:warning={!req.approved}>{req.approved ? '승인' : '대기'}</span>
+										<span class="status" class:olive={req.approved} class:accent={!req.approved}>{req.approved ? '승인' : '대기'}</span>
 									</div>
 								{/each}
 							</div>
@@ -238,78 +239,99 @@
 		</div>
 
 		<div class="changes">
-			<strong>바뀐 점</strong>
+			<span class="label">WHAT CHANGED</span>
 			{#if after}
 				{#each scenario.changes as change (change)}<span class="change">{change}</span>{/each}
 			{:else}
-				<span class="muted">‘요청 적용해 보기’를 누르거나 ‘적용 후’를 눌러 비교해 보세요</span>
+				<em class="caption">‘요청 적용해 보기’를 누르거나 ‘적용 후’를 눌러 비교해 보세요</em>
 			{/if}
 		</div>
 	</section>
 </div>
 
 <style>
+	/* Design skill: warm-editorial (tokens from .theme-warm-editorial) */
 	.compare {
 		flex: 1;
 		display: grid;
-		grid-template-columns: 360px minmax(0, 1fr);
-		gap: 1.5rem;
+		grid-template-columns: 340px minmax(0, 1fr);
+		gap: 40px;
 		align-items: start;
+		padding: 8px 0 16px;
+	}
+
+	.label {
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		color: var(--accent-ink);
 	}
 
 	h2 {
 		margin: 0;
-		font-size: 1.2rem;
+		font-family: var(--font-serif);
+		font-size: 30px;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	.rule {
+		height: 7px;
+		border-top: 2px solid var(--ink);
+		border-bottom: 1px solid var(--line);
 	}
 
 	.scenarios {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 16px;
 	}
 
 	.scenario {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: 0.5rem;
-		padding: 1.1rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--panel);
-		color: var(--text);
+		gap: 8px;
+		padding: 20px 24px;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		background: var(--card);
+		box-shadow: var(--shadow);
+		color: var(--ink);
 		font: inherit;
 		text-align: left;
 		cursor: pointer;
+		transition:
+			transform var(--dur),
+			box-shadow var(--dur);
+	}
+
+	.scenario:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 18px rgba(60, 40, 20, 0.12);
 	}
 
 	.scenario[aria-pressed='true'] {
-		border: 2px solid var(--accent);
-		padding: calc(1.1rem - 1px);
-	}
-
-	.no {
-		font-family: ui-monospace, 'Cascadia Code', monospace;
-		font-size: 0.8rem;
-		color: var(--accent);
+		border-color: var(--accent);
 	}
 
 	.scenario strong {
-		font-size: 1.05rem;
+		font-size: 20px;
+		font-weight: 700;
 	}
 
 	.request {
-		padding: 0.6rem 0.75rem;
-		border-radius: 8px;
-		background: var(--accent-soft);
-		font-size: 0.88rem;
+		font-family: var(--font-serif);
+		font-size: 16px;
+		font-style: italic;
 		line-height: 1.6;
+		color: var(--ink-2);
 	}
 
 	.viewer {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 16px;
 		min-width: 0;
 	}
 
@@ -317,99 +339,98 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 12px;
 	}
 
 	.toggle {
 		margin-left: auto;
 		display: flex;
 		padding: 4px;
-		border-radius: 8px;
-		background: var(--border);
+		border-radius: var(--radius-pill);
+		background: var(--paper-2);
 	}
 
 	.toggle button {
-		min-height: 40px;
-		padding: 0 1.1rem;
+		height: 40px;
+		padding: 0 18px;
 		border: none;
-		border-radius: 6px;
+		border-radius: var(--radius-pill);
 		background: transparent;
-		color: var(--muted);
+		color: var(--ink-2);
 		font: inherit;
-		font-weight: 700;
+		font-size: 15px;
+		font-weight: 600;
 		cursor: pointer;
 	}
 
 	.toggle button[aria-pressed='true'] {
-		background: var(--panel);
-		color: var(--accent);
+		background: var(--card);
+		color: var(--accent-ink);
+		box-shadow: var(--shadow);
 	}
 
 	.apply {
-		min-height: 48px;
-		padding: 0 1.25rem;
+		height: 48px;
+		padding: 0 24px;
 		border: none;
-		border-radius: 8px;
+		border-radius: var(--radius);
 		background: var(--accent);
-		color: var(--panel);
+		color: var(--card);
 		font: inherit;
+		font-size: 15px;
 		font-weight: 700;
 		cursor: pointer;
+		transition: background var(--dur);
+	}
+
+	.apply:hover:not(:disabled) {
+		background: var(--accent-ink);
 	}
 
 	.apply:disabled {
-		background: var(--muted);
+		background: var(--ink-2);
 		cursor: default;
 	}
 
-	.browser {
+	.frame {
 		display: flex;
 		flex-direction: column;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--panel);
+		border-radius: var(--radius);
+		background: var(--card);
+		box-shadow: var(--shadow);
 		overflow: hidden;
 	}
 
 	.chrome {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.75rem;
-		background: var(--bg);
-		border-bottom: 1px solid var(--border);
-	}
-
-	.dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--border);
+		gap: 8px;
+		padding: 10px 16px;
+		border-bottom: 1px solid var(--line);
 	}
 
 	.url {
 		flex: 1;
-		padding: 0.25rem 0.6rem;
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		background: var(--panel);
-		font-family: ui-monospace, 'Cascadia Code', monospace;
-		font-size: 0.7rem;
-		color: var(--muted);
+		font-family: var(--font-serif);
+		font-size: 14px;
+		font-style: italic;
+		color: var(--ink-2);
 	}
 
 	.state {
-		padding: 0.1rem 0.5rem;
-		border-radius: 4px;
-		background: var(--border);
-		color: var(--muted);
-		font-size: 0.75rem;
-		font-weight: 700;
+		height: 28px;
+		display: inline-flex;
+		align-items: center;
+		padding: 0 12px;
+		border-radius: var(--radius-pill);
+		background: var(--paper-2);
+		color: var(--ink-2);
+		font-size: 13px;
+		font-weight: 600;
 	}
 
 	.state.after {
-		background: var(--accent-soft);
-		color: var(--success);
+		color: var(--olive);
 	}
 
 	.screen {
@@ -419,19 +440,13 @@
 		flex-direction: column;
 	}
 
-	/* Scenario 1: daily report. Pinned to the light theme tokens so "after" reads as bright in dark mode too. */
+	/* Scenario 1: daily report */
 	.report {
-		--panel: #ffffff;
-		--bg: #f8fafc;
-		--border: #e2e8f0;
-		--text: #0f172a;
-		--muted: #64748b;
-		--accent: #6d28d9;
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		background: var(--panel);
-		color: var(--text);
+		background: var(--card);
+		color: var(--ink);
 		transition:
 			background 0.5s ease,
 			color 0.5s ease;
@@ -440,67 +455,70 @@
 	.report-bar {
 		display: flex;
 		align-items: center;
-		padding: 0.9rem 1.25rem;
-		background: var(--accent);
-		color: var(--panel);
+		padding: 16px 24px;
+		border-bottom: 1px solid var(--line);
 		transition: background 0.5s ease;
+	}
+
+	.report-bar strong {
+		font-family: var(--font-serif);
+		font-size: 22px;
 	}
 
 	.report-bar span {
 		margin-left: auto;
-		font-size: 0.82rem;
+		font-size: 14px;
+		color: var(--ink-2);
 	}
 
 	.report-kpis {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.75rem;
-		padding: 1.25rem;
+		gap: 16px;
+		padding: 24px;
 	}
 
 	.report-kpis div {
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
-		padding: 1rem;
-		border-radius: 8px;
-		background: var(--bg);
+		gap: 6px;
+		padding: 18px;
+		border-radius: var(--radius);
+		background: var(--paper);
 		transition: background 0.5s ease;
 	}
 
 	.report-kpis span {
-		font-size: 0.8rem;
-		color: var(--muted);
+		font-size: 13px;
+		color: var(--ink-2);
 	}
 
 	.report-kpis strong {
-		font-size: 1.6rem;
+		font-family: var(--font-serif);
+		font-size: 28px;
+		color: var(--accent-ink);
 	}
 
 	.report-table {
-		margin: 0 1.25rem 1.25rem;
-		border-radius: 8px;
-		background: var(--bg);
+		margin: 0 24px 24px;
 		transition: background 0.5s ease;
 	}
 
 	.report-table div {
 		display: grid;
 		grid-template-columns: 100px minmax(0, 1fr) 120px;
-		gap: 0.75rem;
-		padding: 0.75rem 1rem;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.88rem;
-	}
-
-	.report-table div:last-child {
-		border-bottom: none;
+		gap: 12px;
+		padding: 12px 4px;
+		border-bottom: 1px dotted var(--line);
+		font-size: 15px;
 	}
 
 	.report-table .head {
-		font-size: 0.8rem;
+		border-bottom: 1px solid var(--ink);
+		font-size: 12px;
 		font-weight: 700;
-		color: var(--muted);
+		letter-spacing: 0.12em;
+		color: var(--accent-ink);
 	}
 
 	.report.dark {
@@ -510,17 +528,17 @@
 
 	.report.dark .report-bar {
 		background: #0e0f11;
-		color: #8a949e;
+		border-color: #2c3035;
 	}
 
-	.report.dark .report-kpis div,
-	.report.dark .report-table {
-		background: #202327;
-	}
-
+	.report.dark .report-bar span,
 	.report.dark .report-kpis span,
 	.report.dark .report-table .head {
 		color: #5c636b;
+	}
+
+	.report.dark .report-kpis div {
+		background: #202327;
 	}
 
 	.report.dark .report-kpis strong {
@@ -531,7 +549,7 @@
 		border-color: #2c3035;
 	}
 
-	/* Shared mini-app chrome for scenarios 2 and 3 */
+	/* Mini apps for scenarios 2 and 3 */
 	.app {
 		flex: 1;
 		display: flex;
@@ -541,55 +559,57 @@
 	.app-head {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.9rem 1.25rem;
-		background: var(--accent);
-		color: var(--panel);
+		gap: 12px;
+		padding: 16px 24px;
+		border-bottom: 2px solid var(--ink);
+	}
+
+	.app-head strong {
+		font-family: var(--font-serif);
+		font-size: 22px;
 	}
 
 	.app-head .site {
 		margin-left: auto;
-		padding: 0.25rem 0.6rem;
-		border-radius: 4px;
-		background: rgb(255 255 255 / 0.15);
-		font-size: 0.82rem;
+		padding: 4px 12px;
+		border-radius: var(--radius-pill);
+		background: var(--paper-2);
+		color: var(--olive);
+		font-size: 13px;
+		font-weight: 600;
 	}
 
 	.app-body {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.25rem;
+		gap: 20px;
+		padding: 20px 24px;
 	}
 
 	/* Highlights what the request added. */
 	.new {
-		outline: 3px solid var(--warning);
-		outline-offset: 2px;
+		outline: 2px dashed var(--accent);
+		outline-offset: 3px;
 	}
 
 	.bulk {
 		margin-left: auto;
-		padding: 0.35rem 0.75rem;
-		border-radius: 6px;
-		background: var(--panel);
-		color: var(--accent);
-		font-size: 0.8rem;
+		padding: 6px 14px;
+		border-radius: var(--radius);
+		background: var(--accent);
+		color: var(--card);
+		font-size: 13px;
 		font-weight: 700;
-	}
-
-	.crm {
-		border-top: 2px solid var(--text);
 	}
 
 	.crm-row {
 		display: grid;
 		grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 100px 110px;
-		gap: 0.75rem;
+		gap: 12px;
 		align-items: center;
-		padding: 0.75rem;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.88rem;
+		padding: 12px 4px;
+		border-bottom: 1px dotted var(--line);
+		font-size: 15px;
 	}
 
 	.crm.after .crm-row {
@@ -598,13 +618,19 @@
 
 	.crm-row.head,
 	.req-row.head {
-		background: var(--bg);
-		font-size: 0.8rem;
+		border-bottom: 1px solid var(--ink);
+		font-size: 12px;
 		font-weight: 700;
+		letter-spacing: 0.12em;
+		color: var(--accent-ink);
 	}
 
 	.center {
 		text-align: center;
+	}
+
+	.muted {
+		color: var(--ink-2);
 	}
 
 	.status {
@@ -612,15 +638,11 @@
 	}
 
 	.status.accent {
-		color: var(--accent);
+		color: var(--accent-ink);
 	}
 
-	.status.success {
-		color: var(--success);
-	}
-
-	.status.warning {
-		color: var(--warning);
+	.status.olive {
+		color: var(--olive);
 	}
 
 	.status.danger {
@@ -629,35 +651,32 @@
 
 	.send {
 		justify-self: center;
-		min-height: 34px;
-		padding: 0 0.75rem;
-		border: 1px solid var(--accent);
-		border-radius: 6px;
-		background: var(--panel);
-		color: var(--accent);
+		height: 34px;
+		padding: 0 12px;
+		border: 1px solid var(--ink);
+		border-radius: var(--radius);
+		background: transparent;
+		color: var(--ink);
 		font: inherit;
-		font-size: 0.8rem;
-		font-weight: 700;
+		font-size: 13px;
+		font-weight: 600;
 		cursor: pointer;
 	}
 
 	.send.sent {
-		border-color: var(--success);
-		color: var(--success);
+		border-color: var(--olive);
+		background: var(--paper-2);
+		color: var(--olive);
 	}
 
-	.muted {
-		color: var(--muted);
-	}
-
-	/* Scenario 3: paper sketch, intentionally paper-coloured in both themes */
+	/* Scenario 3: paper sketch */
 	.sketch {
 		flex: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 1.5rem;
-		background: #fbf8ef;
+		padding: 24px;
+		background: var(--paper);
 	}
 
 	.sketch svg {
@@ -665,71 +684,73 @@
 		max-width: 760px;
 		height: auto;
 		font-family: 'Comic Sans MS', 'Segoe Print', cursive;
-		fill: #1e2124;
+		fill: var(--ink);
 	}
 
 	.sketch .soft {
-		fill: #464c53;
+		fill: var(--ink-2);
 	}
 
 	.sketch .note {
-		fill: #c0392b;
+		fill: var(--accent);
 	}
 
 	.add {
 		display: grid;
 		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
-		gap: 0.6rem;
+		gap: 12px;
 		align-items: end;
-		padding: 1rem;
-		border-radius: 8px;
-		background: var(--bg);
+		padding: 18px;
+		border-radius: var(--radius);
+		background: var(--paper);
 	}
 
 	.add label {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
-		font-size: 0.8rem;
+		gap: 6px;
+		font-size: 13px;
 		font-weight: 700;
 	}
 
 	.add input {
-		min-height: 40px;
-		padding: 0 0.6rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		background: var(--panel);
-		color: var(--text);
+		height: 48px;
+		padding: 0 12px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--card);
+		color: var(--ink);
 		font: inherit;
-		font-size: 0.88rem;
+		font-size: 15px;
 		font-weight: 400;
 	}
 
-	.add button {
-		min-height: 40px;
-		padding: 0 1.1rem;
-		border: none;
-		border-radius: 6px;
-		background: var(--accent);
-		color: var(--panel);
-		font: inherit;
-		font-size: 0.88rem;
-		font-weight: 700;
-		cursor: pointer;
+	.add input:focus {
+		outline: none;
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px rgba(181, 86, 47, 0.15);
 	}
 
-	.req-table {
-		border-top: 2px solid var(--text);
+	.add button {
+		height: 48px;
+		padding: 0 24px;
+		border: none;
+		border-radius: var(--radius);
+		background: var(--accent);
+		color: var(--card);
+		font: inherit;
+		font-size: 15px;
+		font-weight: 700;
+		cursor: pointer;
 	}
 
 	.req-row {
 		display: grid;
 		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 100px;
-		gap: 0.75rem;
-		padding: 0.75rem;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.88rem;
+		gap: 12px;
+		padding: 12px 4px;
+		border-bottom: 1px dotted var(--line);
+		font-size: 15px;
 	}
 
 	.overlay {
@@ -739,20 +760,21 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.9rem;
-		background: color-mix(in srgb, var(--panel) 86%, transparent);
+		gap: 14px;
+		background: rgb(247 241 230 / 0.88);
 	}
 
 	.overlay > span {
-		font-size: 1.1rem;
-		font-weight: 700;
-		color: var(--accent);
+		font-family: var(--font-serif);
+		font-size: 22px;
+		font-style: italic;
+		color: var(--accent-ink);
 	}
 
 	.progress {
 		width: 280px;
-		height: 6px;
-		background: var(--border);
+		height: 4px;
+		background: var(--line);
 	}
 
 	.progress span {
@@ -766,18 +788,31 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.6rem;
+		gap: 10px;
 		min-height: 36px;
-		font-size: 0.88rem;
 	}
 
 	.change {
-		padding: 0.25rem 0.6rem;
-		border-radius: 4px;
-		background: var(--accent-soft);
-		color: var(--success);
-		font-size: 0.8rem;
-		font-weight: 700;
+		height: 28px;
+		display: inline-flex;
+		align-items: center;
+		padding: 0 12px;
+		border-radius: var(--radius-pill);
+		background: var(--paper-2);
+		color: var(--olive);
+		font-size: 13px;
+		font-weight: 600;
+	}
+
+	.caption {
+		font-family: var(--font-serif);
+		font-size: 14px;
+		color: var(--ink-2);
+	}
+
+	button:focus-visible {
+		outline: 2px solid var(--accent-ink);
+		outline-offset: 3px;
 	}
 
 	@media (max-width: 1000px) {

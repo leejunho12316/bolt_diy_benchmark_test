@@ -3,6 +3,7 @@ import { asc, desc, eq } from 'drizzle-orm';
 import { db, schema } from '#lib/server/db/index.ts';
 import { parseLayout } from '#lib/builder/validate.ts';
 import { getDesign } from '#lib/server/design/catalog.ts';
+import { isImageType, uploadPath } from '#lib/attachments.ts';
 import type { Layout } from '#lib/builder/types.ts';
 import type { PageServerLoad } from './$types';
 
@@ -20,7 +21,12 @@ export const load: PageServerLoad = async ({ params }) => {
 			.where(eq(schema.messages.chatId, chat.id))
 			.orderBy(asc(schema.messages.createdAt)),
 		db
-			.select({ id: schema.messageAttachments.id, messageId: schema.messageAttachments.messageId })
+			.select({
+				id: schema.messageAttachments.id,
+				messageId: schema.messageAttachments.messageId,
+				mediaType: schema.messageAttachments.mediaType,
+				name: schema.messageAttachments.name
+			})
 			.from(schema.messageAttachments)
 			.where(eq(schema.messageAttachments.chatId, chat.id))
 			.orderBy(asc(schema.messageAttachments.createdAt)),
@@ -32,11 +38,20 @@ export const load: PageServerLoad = async ({ params }) => {
 			.limit(1)
 	]);
 
-	// Only ids go to the page; the images themselves load from /api/attachments/<id>.
+	// Only URLs go to the page; the image bytes load from this project's attachment endpoint.
+	const attachmentUrl = (id: string) => `/api/chats/${chat.id}/attachments/${id}`;
+
 	const messages = rows.map((message) => {
-		const attachmentIds = attachments.filter((a) => a.messageId === message.id).map((a) => a.id);
-		return attachmentIds.length > 0 ? { ...message, attachmentIds } : message;
+		const images = attachments.filter((a) => a.messageId === message.id).map((a) => attachmentUrl(a.id));
+		return images.length > 0 ? { ...message, images } : message;
 	});
+
+	// Every attachment of this project, to copy back into its WebContainer as static/uploads/ files.
+	const uploads = attachments.flatMap((a) =>
+		isImageType(a.mediaType)
+			? [{ path: uploadPath({ id: a.id, name: a.name, mediaType: a.mediaType }), url: attachmentUrl(a.id) }]
+			: []
+	);
 
 	let layout: Layout | null = null;
 
@@ -51,6 +66,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		layout,
 		designTitle: getDesign(chat.design)?.title ?? null,
 		messages,
+		uploads,
 		files: snapshot ? (JSON.parse(snapshot.files) as Record<string, string>) : null
 	};
 };

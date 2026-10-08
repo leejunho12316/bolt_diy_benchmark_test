@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { ImageAttachment } from '#lib/attachments.ts';
+import { uploadUrl, type ImageAttachment } from '#lib/attachments.ts';
 // Adapted from bolt.diy app/lib/common/prompts/prompts.ts, rewritten for SvelteKit-only output.
 // Kept free of per-request data so it stays a stable prompt-cache prefix.
 
@@ -23,6 +23,7 @@ Write idiomatic SvelteKit:
 - Shared code in src/lib, imported as $lib/...; server-only code in src/lib/server.
 - Styling with plain CSS in <style> blocks or a global src/app.css imported from +layout.svelte. Do not add Tailwind unless the user asks for it.
 - When a <design_guide> is provided, its tokens, typography and component rules take precedence over your own styling choices.
+- Images the user attaches are already saved in the project; an <attached_files> block lists their paths under static/uploads/. When asked to use an attached image (icon, logo, photo, background), reference that file by its URL (e.g. <img src="/uploads/…">). Never redraw it as SVG, never re-encode it, and never write or delete files in static/uploads/.
 - Make the UI polished and complete: thoughtful layout, spacing, typography, empty/loading/error states, responsive at mobile width.
 - Do not touch svelte.config.js, vite.config.ts or tsconfig.json unless strictly necessary.
 </stack>
@@ -134,8 +135,20 @@ ${designGuide}
 export interface ChatTurn {
 	role: 'user' | 'assistant';
 	content: string;
-	/** Images the user attached to this turn. */
-	images?: Pick<ImageAttachment, 'mediaType' | 'data'>[];
+	/** Images the user attached to this turn, with the project path each one was written to. */
+	images?: (Pick<ImageAttachment, 'mediaType' | 'data'> & { path?: string })[];
+}
+
+/** Tells the model where this turn's images live in the project, so it links them instead of redrawing. */
+function uploadsNote(images: ChatTurn['images']) {
+	const paths = images?.flatMap((image) => (image.path ? [image.path] : [])) ?? [];
+
+	if (paths.length === 0) {
+		return '';
+	}
+
+	const lines = paths.map((path, i) => `- 이미지 ${i + 1}: ${path} (페이지에서는 ${uploadUrl(path)})`);
+	return `\n\n<attached_files>\n첨부한 이미지는 프로젝트에 아래 파일로 저장되어 있습니다.\n${lines.join('\n')}\n</attached_files>`;
 }
 
 /**
@@ -152,7 +165,8 @@ export function toApiMessages(history: ChatTurn[], files: ProjectFiles): Anthrop
 		}
 
 		const context = index === lastIndex ? createFilesContext(files) : '';
-		const text = context ? `${context}\n\n${turn.content}` : turn.content;
+		const request = turn.content + uploadsNote(turn.images);
+		const text = context ? `${context}\n\n${request}` : request;
 
 		if (!turn.images?.length) {
 			return { role: 'user', content: text };

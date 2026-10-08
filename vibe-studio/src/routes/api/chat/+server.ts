@@ -7,7 +7,7 @@ import { parseLayout } from '#lib/builder/validate.ts';
 import { getDesign } from '#lib/server/design/catalog.ts';
 import { parseImages } from '#lib/server/attachments.ts';
 import { ANTHROPIC_MODEL, supportsImages } from '#lib/server/llm/client.ts';
-import { isImageType, type ImageAttachment } from '#lib/attachments.ts';
+import { isImageType, uploadPath, type ImageAttachment } from '#lib/attachments.ts';
 import type { RequestHandler } from './$types';
 
 interface ChatRequest {
@@ -55,7 +55,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	if (images.length > 0) {
 		await db.insert(schema.messageAttachments).values(
-			images.map((image) => ({ id: crypto.randomUUID(), messageId: userMessageId, chatId, ...image }))
+			// The client picked the ids, so the files it already wrote into the project match these rows.
+			images.map((image) => ({ ...image, messageId: userMessageId, chatId }))
 		);
 	}
 
@@ -73,7 +74,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	const assistantId = crypto.randomUUID();
 
 	const body = streamCompletion({
-		history: withLayoutReference([...history, { role: 'user', content: message, images }], chat.layout),
+		history: withLayoutReference(
+			[...history, { role: 'user', content: message, images: images.map((image) => ({ ...image, path: uploadPath(image) })) }],
+			chat.layout
+		),
 		files: files ?? {},
 		designGuide: getDesign(chat.design)?.body,
 		signal: request.signal,
@@ -125,9 +129,11 @@ async function loadHistory(chatId: string): Promise<ChatTurn[]> {
 			.orderBy(asc(schema.messages.createdAt)),
 		db
 			.select({
+				id: schema.messageAttachments.id,
 				messageId: schema.messageAttachments.messageId,
 				mediaType: schema.messageAttachments.mediaType,
-				data: schema.messageAttachments.data
+				data: schema.messageAttachments.data,
+				name: schema.messageAttachments.name
 			})
 			.from(schema.messageAttachments)
 			.where(eq(schema.messageAttachments.chatId, chatId))
@@ -137,7 +143,10 @@ async function loadHistory(chatId: string): Promise<ChatTurn[]> {
 	return rows.map(({ id, role, content }) => {
 		const images = attachments
 			.filter((a) => a.messageId === id && isImageType(a.mediaType))
-			.map(({ mediaType, data }) => ({ mediaType: mediaType as ImageAttachment['mediaType'], data }));
+			.map((a) => {
+				const mediaType = a.mediaType as ImageAttachment['mediaType'];
+				return { mediaType, data: a.data, path: uploadPath({ id: a.id, name: a.name, mediaType }) };
+			});
 
 		return images.length > 0 ? { role, content, images } : { role, content };
 	});

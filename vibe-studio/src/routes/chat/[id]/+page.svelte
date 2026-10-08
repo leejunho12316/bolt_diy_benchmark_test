@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import ChatPanel from '#lib/components/ChatPanel.svelte';
 	import PreviewPanel from '#lib/components/PreviewPanel.svelte';
 	import { layoutSummary, layoutToReference } from '#lib/builder/prompt.ts';
@@ -13,7 +13,7 @@
 
 	const workbench = new Workbench();
 
-	// Initial values only: the page component is recreated when navigating to another chat id.
+	// Initial values only: chat/[id]/+layout.svelte keys this page on the chat id, so it is recreated per project.
 	// svelte-ignore state_referenced_locally
 	let messages = $state<ChatMessage[]>(data.messages.map(toChatMessage));
 	// svelte-ignore state_referenced_locally
@@ -27,7 +27,7 @@
 	let modelName = $state('');
 
 	onMount(() => {
-		ready = workbench.init(data.files);
+		ready = workbench.init(data.files, data.uploads);
 
 		fetch('/api/model')
 			.then((r) => r.json())
@@ -36,6 +36,11 @@
 				modelName = info.model;
 			})
 			.catch(() => {});
+	});
+
+	// Leaving the project tears its container down, so the next project starts from a clean slate.
+	onDestroy(() => {
+		workbench.dispose();
 	});
 
 	async function send(text: string, images: ImageAttachment[] = []) {
@@ -58,6 +63,8 @@
 
 		try {
 			await ready;
+			// Write the images into the project first so code in the reply can link /uploads/... right away.
+			await workbench.writeUploads(images);
 			const files = await workbench.readProjectFiles();
 
 			const response = await fetch('/api/chat', {

@@ -34,7 +34,11 @@ DB는 SQLite 파일(`data/vibe-studio.db`, git 제외)이며, 서버가 처음 �
 
 ### 이미지 첨부
 
-작업 공간 채팅에 이미지를 끌어다 놓거나(붙여넣기·📎 버튼도 가능) 메시지와 함께 보내면, 이미지가 텍스트 앞에 놓여 Claude에게 전달됩니다. PNG/JPEG/GIF/WebP, 한 번에 5장, 긴 변 1568px로 줄여서 전송하며 `message_attachments`에 저장되어 이후 대화에서도 참고됩니다. 모델이 이미지를 지원하는지는 Models API의 `capabilities.image_input`으로 확인하고(`/api/model`), 지원하지 않으면 첨부 대신 알림만 띄웁니다.
+작업 공간 채팅에 이미지를 끌어다 놓거나(붙여넣기·📎 버튼도 가능) 메시지와 함께 보내면, 이미지가 텍스트 앞에 놓여 Claude에게 전달됩니다. PNG/JPEG/GIF/WebP, 한 번에 5장, 긴 변 1568px로 줄여서 전송합니다. 모델이 이미지를 지원하는지는 Models API의 `capabilities.image_input`으로 확인하고(`/api/model`), 지원하지 않으면 첨부 대신 알림만 띄웁니다.
+
+- 첨부 이미지는 프로젝트 안에도 실제 파일로 들어갑니다: `static/uploads/<첨부ID 앞 8자리>-<파일명>` (생성된 앱에서는 `/uploads/...`). 요청에 `<attached_files>`로 경로가 함께 전달되어 Claude가 다시 그리지 않고 원본을 연결합니다.
+- 저장은 프로젝트별입니다: DB `message_attachments`(chat_id), 이미지 URL `/api/chats/<프로젝트ID>/attachments/<첨부ID>`. 스냅샷에는 `static/uploads/`를 넣지 않고, 프로젝트를 열 때 그 프로젝트의 첨부만 DB에서 복원합니다.
+- 미리보기 실행 환경(WebContainer)은 프로젝트를 열 때마다 새로 만들고 나갈 때 정리합니다. 같은 탭에서 다른 프로젝트로 이동해도 파일·업로드·개발 서버가 섞이지 않습니다.
 
 ## 동작 흐름
 

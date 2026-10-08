@@ -1,6 +1,7 @@
 import { MAX_BASE64_LENGTH, MAX_IMAGES, isImageType, type ImageAttachment } from '#lib/attachments.ts';
 
 const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Validates the `images` field of a chat request. Throws with a user-facing message. */
 export function parseImages(raw: unknown): ImageAttachment[] {
@@ -13,7 +14,11 @@ export function parseImages(raw: unknown): ImageAttachment[] {
 	}
 
 	return raw.map((item, i) => {
-		const { mediaType, data, name } = (item ?? {}) as Record<string, unknown>;
+		const { id, mediaType, data, name } = (item ?? {}) as Record<string, unknown>;
+
+		if (typeof id !== 'string' || !UUID_RE.test(id)) {
+			throw new Error(`${i + 1}번째 이미지: 식별자가 올바르지 않습니다.`);
+		}
 
 		if (!isImageType(mediaType)) {
 			throw new Error(`${i + 1}번째 이미지: PNG, JPEG, GIF, WebP만 첨부할 수 있습니다.`);
@@ -23,6 +28,6 @@ export function parseImages(raw: unknown): ImageAttachment[] {
 			throw new Error(`${i + 1}번째 이미지: 이미지 데이터가 올바르지 않거나 너무 큽니다.`);
 		}
 
-		return { mediaType, data, name: typeof name === 'string' ? name.slice(0, 200) : '' };
+		return { id: id.toLowerCase(), mediaType, data, name: typeof name === 'string' ? name.slice(0, 200) : '' };
 	});
 }

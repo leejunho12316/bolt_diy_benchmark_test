@@ -3,10 +3,17 @@
 import type { FileSystemTree, WebContainer, WebContainerProcess } from '@webcontainer/api';
 import type { ActionCallbackData } from '#lib/runtime/message-parser.ts';
 import type { BoltAction } from '#lib/runtime/actions.ts';
-import { getWebContainer } from '#lib/webcontainer/index.ts';
+import { disposeWebContainer, getWebContainer } from '#lib/webcontainer/index.ts';
+import { UPLOADS_DIR, base64ToBytes, uploadPath, type ImageAttachment } from '#lib/attachments.ts';
 import { TEMPLATE_FILES } from '#lib/webcontainer/template.ts';
 
 export type ProjectFiles = Record<string, string>;
+
+/** A stored attachment to copy back into the project: its project path and where to download it. */
+export interface UploadFile {
+	path: string;
+	url: string;
+}
 export type PreviewStatus = 'idle' | 'booting' | 'installing' | 'starting' | 'ready' | 'error';
 export type ActionStatus = 'pending' | 'running' | 'complete' | 'failed';
 
@@ -72,14 +79,19 @@ export class Workbench {
 	#devProcess: WebContainerProcess | undefined;
 	#installedPackageJson = '';
 
-	/** Boots WebContainer, mounts a snapshot (or the base template), installs deps and starts the dev server. */
-	async init(files: ProjectFiles | null) {
+	/**
+	 * Boots a fresh WebContainer for this project, mounts its snapshot (or the base template) plus
+	 * its uploaded images, installs deps and starts the dev server.
+	 */
+	async init(files: ProjectFiles | null, uploads: UploadFile[] = []) {
 		if (this.status !== 'idle') {
 			return;
 		}
 
 		try {
 			this.status = 'booting';
+			// Start clean even if another project's container is still around in this tab.
+			await disposeWebContainer();
 			const wc = await getWebContainer();
 			this.#wc = wc;
 
@@ -102,6 +114,7 @@ export class Workbench {
 			});
 
 			await wc.mount(toTree(files ?? TEMPLATE_FILES));
+			await this.#restoreUploads(uploads);
 			await this.#install();
 			await this.#startDevServer();
 		} catch (error) {
@@ -135,6 +148,20 @@ export class Workbench {
 		await this.#queue;
 	}
 
+	/** Copies newly attached images into the project so generated code can reference them by URL. */
+	async writeUploads(images: ImageAttachment[]) {
+		for (const image of images) {
+			await this.#writeBytes(uploadPath(image), base64ToBytes(image.data));
+		}
+	}
+
+	/** Leaving the project: tear the container down so nothing carries over to the next one. */
+	dispose() {
+		this.#wc = undefined;
+		this.#devProcess = undefined;
+		return disposeWebContainer();
+	}
+
 	reloadPreview() {
 		this.previewKey++;
 	}
@@ -155,7 +182,8 @@ export class Workbench {
 				const path = dir === '.' ? entry.name : `${dir}/${entry.name}`;
 
 				if (entry.isDirectory()) {
-					if (!IGNORED_DIRS.has(entry.name)) {
+					// Uploads are binary and already stored per chat in the DB; they are restored from there.
+					if (!IGNORED_DIRS.has(entry.name) && path !== UPLOADS_DIR) {
 						await walk(path);
 					}
 				} else if (entry.isFile() && !IGNORED_FILES.has(entry.name)) {
@@ -208,6 +236,31 @@ export class Workbench {
 		await wc.fs.writeFile(path, content);
 	}
 
+	async #restoreUploads(uploads: UploadFile[]) {
+		const results = await Promise.allSettled(
+			uploads.map(async ({ path, url }) => {
+				const response = await fetch(url);
+
+				if (!response.ok) {
+					throw new Error(`${path}: ${response.status}`);
+				}
+
+				await this.#writeBytes(path, new Uint8Array(await response.arrayBuffer()));
+			})
+		);
+		const failed = results.filter((r) => r.status === 'rejected').length;
+
+		if (failed > 0) {
+			this.alert = { title: '첨부 이미지를 복원하지 못했습니다', detail: `${failed}개 파일을 프로젝트에 넣지 못했습니다.` };
+		}
+	}
+
+	async #writeBytes(path: string, bytes: Uint8Array) {
+		const wc = this.#requireWc();
+		await wc.fs.mkdir(path.split('/').slice(0, -1).join('/'), { recursive: true });
+		await wc.fs.writeFile(path, bytes);
+	}
+
 	async #readFile(path: string) {
 		try {
 			return await this.#requireWc().fs.readFile(path, 'utf-8');
@@ -254,16 +307,20 @@ export class Workbench {
 		this.#devProcess = process;
 		this.#pipeLogs(process);
 
-		process.exit.then((code) => {
-			if (this.#devProcess === process) {
-				this.#devProcess = undefined;
-				this.status = 'error';
-				this.alert = {
-					title: '개발 서버가 종료되었습니다',
-					detail: `exit code ${code}\n${this.logs.slice(-20).join('\n')}`
-				};
-			}
-		});
+		// dispose() clears #devProcess before tearing down, so a teardown-killed server is not reported;
+		// teardown rejects the exit promise ("Process aborted"), which is expected there.
+		process.exit
+			.then((code) => {
+				if (this.#devProcess === process) {
+					this.#devProcess = undefined;
+					this.status = 'error';
+					this.alert = {
+						title: '개발 서버가 종료되었습니다',
+						detail: `exit code ${code}\n${this.logs.slice(-20).join('\n')}`
+					};
+				}
+			})
+			.catch(() => {});
 	}
 
 	async #spawnAndWait(command: string, args: string[]) {
@@ -288,7 +345,9 @@ export class Workbench {
 					}
 				}
 			})
-		);
+		).catch(() => {
+			// The stream aborts when the container is torn down (project switch); nothing to report.
+		});
 	}
 
 	#requireWc() {
