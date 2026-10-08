@@ -12,7 +12,7 @@ pnpm dev
 
 DB는 SQLite 파일(`data/vibe-studio.db`, git 제외)이며, 서버가 처음 뜰 때 자동으로 만들어지고 `drizzle/`의 마이그레이션이 적용됩니다. 별도 DB 설치나 Docker는 필요 없습니다.
 
-`/`는 **블록 조합형 시작 페이지**입니다. 로고·라우트·버튼·텍스트 블록을 캔버스에 끌어다 놓아 페이지별 화면을 구성하고 **시작하기**를 누르면 `/chat/<id>`로 이동합니다. 이때 바로 생성하지 않고, 사용자가 첫 요청을 입력하면 그 구성이 "요소 간 상대적인 배치"(위아래 순서, 같은 줄, 좌우 순서·정렬, 간격) 설명으로 바뀌어 참고 자료로 함께 전달됩니다. 글로 바로 시작하려면 "빈 채팅으로 시작"을 누르세요. 크롬 계열 브라우저를 권장합니다(WebContainer 요구사항).
+`/`로 접속하면 **내 프로젝트**(`/projects`)로 이동합니다. 새 프로젝트를 누르면 나오는 `/projects/new`는 **블록 조합형 시작 페이지**입니다. 로고·라우트·버튼·텍스트 블록을 캔버스에 끌어다 놓아 페이지별 화면을 구성하고 **시작하기**를 누르면 `/chat/<id>`로 이동합니다. 이때 바로 생성하지 않고, 사용자가 첫 요청을 입력하면 그 구성이 "요소 간 상대적인 배치"(위아래 순서, 같은 줄, 좌우 순서·정렬, 간격) 설명으로 바뀌어 참고 자료로 함께 전달됩니다. 글로 바로 시작하려면 "빈 채팅으로 시작"을 누르세요. 크롬 계열 브라우저를 권장합니다(WebContainer 요구사항).
 
 | 명령 | 설명 |
 |---|---|
@@ -22,6 +22,19 @@ DB는 SQLite 파일(`data/vibe-studio.db`, git 제외)이며, 서버가 처음 �
 | `pnpm build` | 프로덕션 빌드 |
 | `pnpm db:generate` | 스키마(`src/lib/server/db/schema.ts`) 변경 후 마이그레이션 생성 (적용은 서버 시작 시 자동) |
 | `pnpm db:studio` | Drizzle Studio로 DB 내용 보기 |
+
+`/projects`(**내 프로젝트**)에서 지금까지 만든 프로젝트 목록을 보고 작업 공간으로 바로 들어가거나 삭제할 수 있습니다(대화·결과물 함께 삭제).
+
+### 디자인 템플릿
+
+블록 배치 화면에서 **시작하기**를 누르면 오른쪽 서랍에서 디자인 템플릿을 고릅니다. 템플릿은 `design-skills/<id>/SKILL.md`(디자인 가이드)와 `preview.html`(예시 페이지)로 구성되고, 고른 템플릿의 가이드는 대화 내내 Claude의 시스템 프롬프트에 함께 들어갑니다(`chats.design`).
+
+- 템플릿 추가: `design-skills/<새 id>/`에 frontmatter(`name`, `title`, `description`, `tags`)가 있는 SKILL.md와 preview.html을 만들고 `pnpm design:previews`로 카드 이미지(`static/design-previews/<id>.png`)를 생성합니다.
+- `pnpm design:previews [id...]`: 시스템 Chrome으로 예시 페이지를 캡처합니다. Chrome 경로가 다르면 `CHROME_PATH`를 지정하세요.
+
+### 이미지 첨부
+
+작업 공간 채팅에 이미지를 끌어다 놓거나(붙여넣기·📎 버튼도 가능) 메시지와 함께 보내면, 이미지가 텍스트 앞에 놓여 Claude에게 전달됩니다. PNG/JPEG/GIF/WebP, 한 번에 5장, 긴 변 1568px로 줄여서 전송하며 `message_attachments`에 저장되어 이후 대화에서도 참고됩니다. 모델이 이미지를 지원하는지는 Models API의 `capabilities.image_input`으로 확인하고(`/api/model`), 지원하지 않으면 첨부 대신 알림만 띄웁니다.
 
 ## 동작 흐름
 

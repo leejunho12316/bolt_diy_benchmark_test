@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>공공 서비스 포털 미리보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+:root{--p:#256EF4;--navy:#0E2A5A;--g5:#F4F5F6;--g10:#E6E8EA;--g20:#CDD1D5;--g50:#6D7882;--g70:#464C53;--g90:#1E2124;--quick:#EEF4FD;--quickb:#D5E3FA}
+*{box-sizing:border-box}body{margin:0;font-family:"Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;color:var(--g90);letter-spacing:-.01em;background:#fff;word-break:keep-all}
+.c{width:1080px;margin:0 auto}
+header{border-bottom:1px solid var(--g10)}header .c{height:81px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px}.logo i{width:36px;height:36px;border-radius:10px;background:var(--p);display:block}
+.util{display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-size:13px;color:var(--g70)}.util b{font-size:15px;color:var(--g90);margin-left:18px}
+nav{border-bottom:1px solid var(--g10)}nav .c{height:52px;display:flex;gap:44px;align-items:center;font-size:17px;font-weight:600}
+.alert{margin:20px auto 0;background:var(--navy);color:#fff;border-radius:4px;height:36px;display:flex;align-items:center;padding:0 16px;font-size:15px;font-weight:700}
+.grid{display:grid;grid-template-columns:712px 344px;gap:24px;margin-top:22px}
+.search{margin:0 auto;width:530px;height:58px;border-radius:999px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#2BC0C4,var(--p)) border-box;display:flex;align-items:center;padding:0 24px;color:var(--g50);font-size:17px;box-shadow:0 4px 16px rgba(37,110,244,.1)}
+.panel{margin-top:21px;background:var(--quick);border:1px solid var(--quickb);border-radius:16px;padding:22px}
+h3{margin:0 0 14px;font-size:18px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tile{background:#fff;border-radius:8px;height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:14px;font-weight:500}.tile i{width:22px;height:22px;border-radius:6px;display:block}
+.card{border:1px solid var(--g10);border-radius:16px;padding:22px;background:#fff}
+.login p{font-size:17px;font-weight:700;margin:0 0 14px;line-height:1.5}.btn{height:48px;border-radius:4px;background:var(--p);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:14px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mini span{background:var(--g5);border-radius:8px;height:44px;display:flex;align-items:center;padding:0 12px;font-size:14px}
+.notice li{list-style:none;font-size:13px;color:var(--g70);padding:7px 0;display:flex;justify-content:space-between}.notice ul{margin:0;padding:0}.notice li:first-child{font-weight:700;color:var(--g90)}.n{background:var(--p);color:#fff;border-radius:3px;font-size:10px;padding:1px 4px}
+.side{display:flex;flex-direction:column;gap:12px}
+.chips{display:flex;gap:6px;margin-bottom:12px}.chips span{border:1px solid var(--g20);border-radius:999px;padding:4px 12px;font-size:12px}.chips span:first-child{background:var(--navy);color:#fff;border-color:var(--navy)}
+</style>
+</head>
+<body>
+<header><div class="c"><div class="logo"><i></i>서비스 포털</div><div class="util"><div>For Foreigners ∨ │ 어린이 │ 시니어 │ 지원 ∨ │ 화면크기 ∨</div><div><b>AI비서</b><b>통합검색</b><b>로그인</b><b>회원가입</b></div></div></div></header>
+<nav><div class="c"><span>민원서비스</span><span>혜택알리미</span><span>생활</span><span>정책정보</span><span>고객센터</span></div></nav>
+<div class="c alert">10월 정기 점검 안내: 10월 12일(토) 02:00~06:00 일부 서비스가 중단됩니다.</div>
+<div class="c grid">
+<main>
+<div class="search">무엇을 알고 싶으세요?</div>
+<div class="panel"><h3>자주 찾는 서비스</h3><div class="tiles">
+<div class="tile"><i style="background:#FF7A45"></i>주민등록등본</div><div class="tile"><i style="background:#2BC0C4"></i>건강보험 자격</div><div class="tile"><i style="background:#256EF4"></i>전입신고</div><div class="tile"><i style="background:#F0506E"></i>가족관계증명</div>
+<div class="tile"><i style="background:#7C5CFF"></i>운전경력증명</div><div class="tile"><i style="background:#FFB020"></i>지방세 납세</div><div class="tile"><i style="background:#22B07D"></i>사업자등록</div><div class="tile"><i style="background:#256EF4"></i>여권 재발급</div>
+</div></div>
+<div class="card" style="margin-top:12px"><h3>원스톱 서비스</h3><div class="chips"><span>전체</span><span>출산</span><span>이사</span><span>창업</span><span>사망</span></div><div class="tiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile" style="background:var(--g5)">행복출산</div><div class="tile" style="background:var(--g5)">이사 한번에</div><div class="tile" style="background:var(--g5)">창업 원스톱</div></div></div>
+</main>
+<aside class="side">
+<div class="card login"><p>회원가입하고 아래 서비스를<br>편리하게 이용하세요.</p><div class="mini"><span>민원신청</span><span>전자증명</span><span>혜택알리미</span><span>생활정보</span></div><div class="btn">로그인</div></div>
+<div class="card notice"><h3>공지사항</h3><ul><li>개인정보 처리방침 개정 안내</li><li>추석 연휴 민원 처리 일정 <span class="n">N</span></li><li>모바일 신분증 발급 확대</li><li>전자증명서 이용 기관 추가</li></ul></div>
+</aside>
+</div>
+</body>
+</html>

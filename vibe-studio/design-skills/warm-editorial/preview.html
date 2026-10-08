@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>따뜻한 에디토리얼 미리보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+:root{--paper:#F7F1E6;--paper2:#EFE6D6;--card:#FFFDF8;--ink:#2B211A;--ink2:#6B5D52;--line:#DCCFBC;--accent:#B5562F;--accentInk:#8E3F1F;--olive:#6E7445}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Pretendard Variable",Pretendard,sans-serif;word-break:keep-all}
+.serif{font-family:"Noto Serif KR",Georgia,serif}
+.c{max-width:1120px;margin:0 auto;padding:0 32px}
+header .c{height:80px;display:flex;align-items:center;gap:28px}.logo{font-size:26px;font-weight:700;margin-right:auto}
+nav{display:flex;gap:28px;font-size:15px;font-weight:500}
+.btn{background:var(--accent);color:var(--card);height:46px;padding:0 22px;border-radius:6px;display:inline-flex;align-items:center;font-weight:700;font-size:15px}
+.dbl{border-top:2px solid var(--ink);height:4px;border-bottom:1px solid var(--line)}
+.label{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--accentInk)}
+.hero{display:grid;grid-template-columns:7fr 5fr;gap:48px;padding:44px 0 32px;align-items:center}
+h1{font-size:62px;line-height:1.15;margin:14px 0 18px;letter-spacing:-.02em}
+.lead{font-size:19px;line-height:1.75;color:var(--ink2);margin:0 0 26px;max-width:26em}
+.link{color:var(--accentInk);text-decoration:underline;text-underline-offset:4px;margin-left:18px;font-weight:600}
+.photo{aspect-ratio:4/5;border-radius:6px;background:linear-gradient(160deg,#C9A27E,#8C5A3C 55%,#4A2E1E);position:relative;overflow:hidden}
+.photo:after{content:"";position:absolute;left:22%;top:30%;width:56%;height:44%;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 45% 40%,#F3E3CC,#E2C7A4 60%,#C49A72);box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.cap{font-family:"Noto Serif KR",serif;font-style:italic;font-size:14px;color:var(--ink2);margin-top:10px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card{background:var(--card);border-radius:6px;box-shadow:0 2px 12px rgba(60,40,20,.08);padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+.card b{font-size:17px}.price{font-family:"Noto Serif KR",serif;font-weight:700}
+.tag{background:var(--paper2);color:var(--olive);border-radius:999px;font-size:12px;font-weight:600;padding:4px 10px;margin-left:8px}
+</style>
+</head>
+<body>
+<header><div class="c"><div class="logo serif">브루하우스</div><nav><span>메뉴</span><span>이야기</span><span>방문</span><span>문의</span></nav><span class="btn">자리 예약</span></div><div class="c"><div class="dbl"></div></div></header>
+<div class="c">
+<section class="hero"><div><div class="label">ISSUE NO. 07 · 가을</div><h1 class="serif">천천히 내린 한 잔이 계절을 바꿉니다</h1><p class="lead">매일 아침 직접 볶은 원두로, 동네의 가을을 컵에 담았습니다. 이번 호는 단풍 라떼와 무화과 스콘 이야기입니다.</p><span class="btn">이번 호 읽기</span><span class="link">메뉴 보기 →</span></div>
+<div><div class="photo"></div><div class="cap">오후 세 시, 창가 자리의 단풍 라떼</div></div></section>
+<div class="cards"><div class="card"><b>단풍 라떼<span class="tag">시즌</span></b><span class="price">6,500</span></div><div class="card"><b>무화과 스콘</b><span class="price">4,200</span></div><div class="card"><b>핸드드립 에티오피아</b><span class="price">7,000</span></div></div>
+</div>
+</body>
+</html>
