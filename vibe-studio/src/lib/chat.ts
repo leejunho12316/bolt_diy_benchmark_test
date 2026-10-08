@@ -16,15 +16,14 @@ export interface StoredMessage {
 	id: string;
 	role: 'user' | 'assistant';
 	content: string;
-	/** Ids of images attached to a user message. */
-	attachmentIds?: string[];
+	/** URLs of images attached to a user message. */
+	images?: string[];
 }
 
 /** Re-parses a saved assistant reply into display text plus the files it wrote, without executing anything. */
 export function toChatMessage(stored: StoredMessage): ChatMessage {
 	if (stored.role === 'user') {
-		const images = stored.attachmentIds?.map((id) => `/api/attachments/${id}`);
-		return { id: stored.id, role: 'user', text: stored.content, files: [], images };
+		return { id: stored.id, role: 'user', text: stored.content, files: [], images: stored.images };
 	}
 
 	const files: string[] = [];

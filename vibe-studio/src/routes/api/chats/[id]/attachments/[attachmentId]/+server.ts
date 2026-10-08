@@ -1,14 +1,19 @@
 import { error } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db, schema } from '#lib/server/db/index.ts';
 import type { RequestHandler } from './$types';
 
-/** Serves a stored chat image so the chat history can show thumbnails without inlining base64. */
+const { messageAttachments } = schema;
+
+/**
+ * Serves a stored image of one project: for the chat history thumbnails and to restore the
+ * file into the project's WebContainer. An id from another project returns 404.
+ */
 export const GET: RequestHandler = async ({ params }) => {
 	const [image] = await db
-		.select({ mediaType: schema.messageAttachments.mediaType, data: schema.messageAttachments.data })
-		.from(schema.messageAttachments)
-		.where(eq(schema.messageAttachments.id, params.id));
+		.select({ mediaType: messageAttachments.mediaType, data: messageAttachments.data })
+		.from(messageAttachments)
+		.where(and(eq(messageAttachments.id, params.attachmentId), eq(messageAttachments.chatId, params.id)));
 
 	if (!image) {
 		error(404, 'attachment not found');

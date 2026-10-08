@@ -10,6 +10,8 @@ export const MAX_EDGE = 1568;
 export const MAX_BASE64_LENGTH = Math.floor((5 * 1024 * 1024 * 4) / 3);
 
 export interface ImageAttachment {
+	/** UUID chosen by the client so it can write the project file before the server stores it. */
+	id: string;
 	mediaType: ImageMediaType;
 	/** Base64 without the data: prefix. */
 	data: string;
@@ -48,8 +50,41 @@ export async function prepareImage(file: File): Promise<ImageAttachment> {
 		throw new Error(`${file.name}: 이미지가 너무 큽니다.`);
 	}
 
-	return { mediaType, data, name: file.name };
+	return { id: crypto.randomUUID(), mediaType, data, name: file.name };
 }
 
 export const toDataUrl = (image: Pick<ImageAttachment, 'mediaType' | 'data'>) =>
 	`data:${image.mediaType};base64,${image.data}`;
+
+/** Project folder that holds the chat's attachments as real files (served by the generated app). */
+export const UPLOADS_DIR = 'static/uploads';
+
+const EXTENSIONS: Record<ImageMediaType, string> = {
+	'image/png': 'png',
+	'image/jpeg': 'jpg',
+	'image/gif': 'gif',
+	'image/webp': 'webp'
+};
+
+/**
+ * Where an attachment lives inside the generated project, e.g. static/uploads/3f2a9c1e-help-icon.png.
+ * The id prefix keeps two uploads with the same name from overwriting each other.
+ */
+export function uploadPath(image: Pick<ImageAttachment, 'id' | 'name' | 'mediaType'>) {
+	const stem =
+		image.name
+			.replace(/\.[^.]*$/, '')
+			.toLowerCase()
+			.replace(/[^a-z0-9_-]+/g, '-')
+			.replace(/^-+|-+$/g, '')
+			.slice(0, 40) || 'image';
+
+	return `${UPLOADS_DIR}/${image.id.slice(0, 8)}-${stem}.${EXTENSIONS[image.mediaType]}`;
+}
+
+/** URL of an upload inside the generated app (SvelteKit serves static/ at the root). */
+export const uploadUrl = (path: string) => path.replace(/^static/, '');
+
+export function base64ToBytes(data: string) {
+	return Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+}
