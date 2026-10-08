@@ -3,11 +3,20 @@
 
 	interface Props {
 		title: string;
+		/** `.theme-*` scope from themes.css; the example area takes that design skill's look. */
+		theme: string;
+		designTitle: string;
 		notice?: string;
 		children: Snippet;
 	}
 
-	let { title, notice = '이 화면은 바이브 코딩으로 만든 예시예요. 직접 눌러 보며 써 보세요.', children }: Props = $props();
+	let {
+		title,
+		theme,
+		designTitle,
+		notice = '이 화면은 바이브 코딩으로 만든 예시예요. 직접 눌러 보며 써 보세요.',
+		children
+	}: Props = $props();
 </script>
 
 <div class="page">
@@ -21,11 +30,11 @@
 	</header>
 
 	<div class="notice">
-		<span>{notice}</span>
+		<span>{notice} <span class="design">디자인 · {designTitle}</span></span>
 		<a href="/login">나도 만들어 보기 →</a>
 	</div>
 
-	<main>
+	<main class={theme}>
 		{@render children()}
 	</main>
 </div>
@@ -127,12 +136,22 @@
 		text-decoration: none;
 	}
 
+	.design {
+		margin-left: 0.5rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 4px;
+		background: rgb(255 255 255 / 0.18);
+		font-size: 0.78rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	/* No background here: the theme class on <main> paints it. */
 	main {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 		padding: 1.5rem 2rem 2.5rem;
-		background: var(--bg);
 	}
 
 	@media (max-width: 800px) {

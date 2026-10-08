@@ -1,0 +1,120 @@
+/* Tokens copied from design-skills/<name>/SKILL.md. Each example renders inside one of these scopes. */
+
+.theme-nature-green {
+	--bg: #f4efe6;
+	--surface: #fbf8f2;
+	--sage: #c9d5b9;
+	--sage-2: #e3ead9;
+	--forest: #2f4a36;
+	--forest-2: #1f3325;
+	--ink-2: #5b6b5e;
+	--clay: #c27c5a;
+	--line: #dcd3c3;
+	--danger: #b4513d;
+	--font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+	--font-serif: 'Gowun Batang', 'Noto Serif KR', serif;
+	--radius-sm: 12px;
+	--radius: 18px;
+	--radius-pill: 999px;
+	--pebble: 60% 40% 55% 45% / 50% 60% 40% 50%;
+	--shadow: 0 6px 20px rgba(47, 74, 54, 0.08);
+	--dur: 240ms;
+	color-scheme: light;
+	background: var(--bg);
+	color: var(--forest-2);
+	font-family: var(--font-sans);
+}
+
+.theme-minimal-mono {
+	--ink: #0a0a0a;
+	--ink-2: #5c5c5c;
+	--ink-3: #9a9a9a;
+	--line: #e5e5e5;
+	--paper: #ffffff;
+	--paper-2: #f6f6f6;
+	--danger: #c62828;
+	--focus: #0a0a0a;
+	--font-sans: 'Pretendard Variable', Pretendard, 'Inter Tight', system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	--dur: 180ms;
+	color-scheme: light;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-sans);
+}
+
+.theme-neo-brutal {
+	--ink: #111111;
+	--bg: #fff8e7;
+	--white: #ffffff;
+	--yellow: #ffd43b;
+	--pink: #ff7ab6;
+	--blue: #5b8cff;
+	--green: #4cd08a;
+	--danger: #e5383b;
+	--font-display: 'Black Han Sans', 'Pretendard Variable', sans-serif;
+	--font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+	--font-mono: 'Space Mono', ui-monospace, monospace;
+	--border: 3px solid var(--ink);
+	--border-thin: 2px solid var(--ink);
+	--shadow: 6px 6px 0 var(--ink);
+	--shadow-sm: 4px 4px 0 var(--ink);
+	--radius: 8px;
+	--dur: 100ms;
+	color-scheme: light;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font-sans);
+}
+
+.theme-dark-dashboard {
+	--bg: #0b1020;
+	--surface: #121a2e;
+	--surface-2: #1a2440;
+	--line: #243050;
+	--ink: #e6eaf5;
+	--ink-2: #a3adc8;
+	--ink-3: #6b7699;
+	--accent: #22d3ee;
+	--accent-ink: #0b1020;
+	--up: #34d399;
+	--down: #f87171;
+	--warn: #fbbf24;
+	--chart-1: #22d3ee;
+	--chart-2: #818cf8;
+	--chart-3: #34d399;
+	--chart-4: #fbbf24;
+	--chart-5: #f472b6;
+	--font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	--radius-sm: 6px;
+	--radius: 10px;
+	--dur: 140ms;
+	color-scheme: dark;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font-sans);
+}
+
+.theme-warm-editorial {
+	--paper: #f7f1e6;
+	--paper-2: #efe6d6;
+	--card: #fffdf8;
+	--ink: #2b211a;
+	--ink-2: #6b5d52;
+	--line: #dccfbc;
+	--accent: #b5562f;
+	--accent-ink: #8e3f1f;
+	--olive: #6e7445;
+	--danger: #a3260c;
+	--font-serif: 'Noto Serif KR', 'Nanum Myeongjo', Georgia, serif;
+	--font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+	--radius: 6px;
+	--radius-pill: 999px;
+	--shadow: 0 2px 12px rgba(60, 40, 20, 0.08);
+	--dur: 200ms;
+	color-scheme: light;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-sans);
+}

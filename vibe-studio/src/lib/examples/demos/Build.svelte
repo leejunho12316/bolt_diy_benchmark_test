@@ -72,12 +72,13 @@
 </script>
 
 <div class="build">
-	<section class="panel" aria-labelledby="bd-req">
-		<h2 id="bd-req">1. 말로 요청하기</h2>
+	<section class="box request" aria-labelledby="bd-req">
+		<span class="label">STEP 1</span>
+		<h2 id="bd-req">말로 요청하기</h2>
 		<label for="bd-text">만들고 싶은 화면을 적고 만들기를 눌러 보세요.</label>
 		<textarea id="bd-text" rows="5" bind:value={request}></textarea>
-		<button type="button" class="primary" onclick={build} disabled={phase === 'building'}>
-			{phase === 'building' ? '만드는 중…' : phase === 'done' ? '다시 만들기' : '만들기'}
+		<button type="button" class="btn" onclick={build} disabled={phase === 'building'}>
+			{phase === 'building' ? '만드는 중…' : phase === 'done' ? '다시 만들기' : '만들기!'}
 		</button>
 		<p class="free" aria-live="polite">
 			<span class="dots" aria-hidden="true">
@@ -85,13 +86,16 @@
 			</span>
 			{left > 0 ? `로그인 없이 ${left}번 더 만들어 볼 수 있어요` : '무료 체험을 모두 썼어요. 다음부터는 로그인이 필요해요.'}
 		</p>
+	</section>
 
-		<h2>2. 만드는 과정 지켜보기</h2>
+	<section class="box steps" aria-labelledby="bd-steps">
+		<span class="label">STEP 2</span>
+		<h2 id="bd-steps">만드는 과정 지켜보기</h2>
 		<ol aria-live="polite">
 			{#each STEPS as label, i (label)}
 				{@const status = stepState(i)}
 				<li class={status}>
-					<span class="mark" aria-hidden="true">{status === 'done' ? '✓' : ''}</span>
+					<span class="mark" aria-hidden="true">{status === 'done' ? '✓' : i + 1}</span>
 					{status === 'current' ? `${label} 중` : label}
 				</li>
 			{/each}
@@ -99,51 +103,52 @@
 	</section>
 
 	<section class="output" aria-labelledby="bd-out">
-		<h2 id="bd-out">3. 완성된 화면 바로 써 보기</h2>
+		<div class="output-head">
+			<span class="label">STEP 3</span>
+			<h2 id="bd-out">완성된 화면 바로 써 보기</h2>
+		</div>
 		<div class="browser">
 			<div class="chrome">
-				<span></span><span></span>
-				<span class="url">미리보기 · /safety-certificates</span>
+				<span></span><span></span><span></span>
+				<span class="url">/safety-certificates</span>
 			</div>
 
 			{#if phase === 'idle'}
 				<p class="placeholder">만들기를 누르면 여기에 화면이 만들어져요.</p>
 			{:else if phase === 'building'}
-				<div class="skeleton" aria-hidden="true">
-					<span style:width="40%" style:height="36px"></span>
-					<span style:height="120px"></span>
-					<span style:height="44px"></span>
-					<span style:height="44px"></span>
+				<div class="marquee" aria-hidden="true">
+					<div>
+						{#each { length: 8 }, i (i)}<span>AI가 만드는 중 ▶</span>{/each}
+					</div>
 				</div>
+				<div class="loading" aria-hidden="true"><span></span><span></span><span></span></div>
 				<p class="building">{STEPS[Math.min(step, STEPS.length - 1)]} 중…</p>
 			{:else}
 				<div class="app">
 					<div class="app-head">
 						<strong>안전 교육 이수증 확인</strong>
-						<span>확인 대기 {pending}건</span>
+						<span class="sticker">대기 {pending}건</span>
 					</div>
-					<div class="app-body">
-						<form class="add" onsubmit={addCert}>
-							<label>업체명<input bind:value={form.company} placeholder="○○건설" /></label>
-							<label>이름<input bind:value={form.name} placeholder="홍길동" /></label>
-							<label>교육일<input type="date" bind:value={form.date} /></label>
-							<button type="submit" class="primary small">이수증 올리기</button>
-						</form>
-						<div class="table">
-							<div class="row head"><span>업체</span><span>이름</span><span>교육일</span><span class="center">상태</span></div>
-							{#each certs as cert (cert.id)}
-								<div class="row">
-									<span>{cert.company}</span>
-									<span>{cert.name}</span>
-									<span class="muted">{cert.date}</span>
-									{#if cert.done}
-										<span class="center ok">확인 완료</span>
-									{:else}
-										<button type="button" class="center confirm" onclick={() => (cert.done = true)}>확인 완료 누르기</button>
-									{/if}
-								</div>
-							{/each}
-						</div>
+					<form class="add" onsubmit={addCert}>
+						<label>업체명<input bind:value={form.company} placeholder="○○건설" /></label>
+						<label>이름<input bind:value={form.name} placeholder="홍길동" /></label>
+						<label>교육일<input type="date" bind:value={form.date} /></label>
+						<button type="submit" class="btn small">이수증 올리기</button>
+					</form>
+					<div class="ticket">
+						<div class="row head"><span>업체</span><span>이름</span><span>교육일</span><span>상태</span></div>
+						{#each certs as cert (cert.id)}
+							<div class="row">
+								<span>{cert.company}</span>
+								<span>{cert.name}</span>
+								<span class="mono">{cert.date}</span>
+								{#if cert.done}
+									<span class="ok">확인 완료</span>
+								{:else}
+									<button type="button" class="confirm" onclick={() => (cert.done = true)}>확인 완료 누르기</button>
+								{/if}
+							</div>
+						{/each}
 					</div>
 				</div>
 			{/if}
@@ -152,53 +157,89 @@
 </div>
 
 <dialog bind:this={gate} aria-labelledby="bd-gate">
+	<span class="label">FREE TRIAL OVER</span>
 	<h2 id="bd-gate">무료 체험 {FREE_TRIES}회를 모두 썼어요</h2>
 	<p>어떠셨나요? 로그인하면 내 프로젝트에서 원하는 만큼 계속 만들 수 있어요.</p>
-	<a class="primary" href="/login">로그인하고 계속 만들기</a>
+	<a class="btn" href="/login">로그인하고 계속 만들기</a>
 	<button type="button" class="ghost" onclick={() => gate.close()}>완성된 화면 더 둘러보기</button>
 </dialog>
 
 <style>
+	/* Design skill: neo-brutal (tokens from .theme-neo-brutal) */
 	.build {
 		flex: 1;
 		display: grid;
-		grid-template-columns: 400px minmax(0, 1fr);
-		gap: 1.5rem;
+		grid-template-columns: 380px minmax(0, 1fr);
+		grid-template-areas:
+			'request output'
+			'steps output';
+		gap: 24px;
 		align-items: start;
+		padding-bottom: 8px;
 	}
 
-	.panel {
+	.request {
+		grid-area: request;
+		background: var(--yellow);
+	}
+
+	.steps {
+		grid-area: steps;
+		background: var(--pink);
+	}
+
+	.output {
+		grid-area: output;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--panel);
+		gap: 12px;
+		min-width: 0;
+	}
+
+	.box {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 24px;
+		border: var(--border);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+	}
+
+	.label,
+	.mono {
+		font-family: var(--font-mono);
+		font-weight: 700;
+	}
+
+	.label {
+		font-size: 14px;
+		letter-spacing: 0.04em;
 	}
 
 	h2 {
 		margin: 0;
-		font-size: 1.2rem;
-	}
-
-	.panel h2:not(:first-child) {
-		margin-top: 0.5rem;
+		font-family: var(--font-display);
+		font-size: 30px;
+		font-weight: 400;
+		line-height: 1.1;
 	}
 
 	label {
-		font-size: 0.88rem;
-		color: var(--muted);
+		font-size: 15px;
+		font-weight: 500;
 	}
 
 	textarea,
 	input {
-		padding: 0.75rem;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		background: var(--panel);
-		color: var(--text);
+		padding: 12px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		color: var(--ink);
 		font: inherit;
+		font-size: 15px;
+		font-weight: 500;
 		line-height: 1.6;
 	}
 
@@ -208,43 +249,60 @@
 
 	textarea:focus,
 	input:focus {
-		outline: 2px solid var(--accent-soft);
-		border-color: var(--accent);
+		outline: none;
+		box-shadow: var(--shadow-sm);
 	}
 
-	.primary {
+	.btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 52px;
-		border: none;
-		border-radius: 8px;
-		background: var(--accent);
-		color: var(--panel);
+		height: 56px;
+		padding: 0 28px;
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--blue);
+		color: var(--ink);
+		box-shadow: var(--shadow);
 		font: inherit;
-		font-weight: 700;
+		font-size: 17px;
+		font-weight: 800;
 		text-decoration: none;
 		cursor: pointer;
+		transition:
+			transform var(--dur),
+			box-shadow var(--dur);
 	}
 
-	.primary:disabled {
-		background: var(--muted);
+	.btn:hover:not(:disabled) {
+		transform: translate(-2px, -2px);
+		box-shadow: 8px 8px 0 var(--ink);
+	}
+
+	.btn:active:not(:disabled) {
+		transform: translate(6px, 6px);
+		box-shadow: none;
+	}
+
+	.btn:disabled {
+		background: var(--white);
 		cursor: default;
 	}
 
-	.primary.small {
-		min-height: 40px;
-		padding: 0 1rem;
-		font-size: 0.88rem;
+	.btn.small {
+		height: 44px;
+		padding: 0 16px;
+		font-size: 15px;
+		box-shadow: var(--shadow-sm);
 	}
 
 	.free {
-		margin: -0.4rem 0 0;
+		margin: 0;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.88rem;
-		color: var(--muted);
+		gap: 8px;
+		font-size: 14px;
+		font-weight: 700;
 	}
 
 	.dots {
@@ -253,14 +311,14 @@
 	}
 
 	.dots span {
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background: var(--border);
+		width: 14px;
+		height: 14px;
+		border: var(--border-thin);
+		background: var(--white);
 	}
 
 	.dots span.on {
-		background: var(--accent);
+		background: var(--ink);
 	}
 
 	ol {
@@ -269,88 +327,106 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.6rem;
+		gap: 10px;
 	}
 
 	li {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
-		color: var(--muted);
+		gap: 10px;
+		padding: 8px 10px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		font-size: 15px;
+		font-weight: 700;
+		opacity: 0.55;
 	}
 
 	.mark {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 22px;
-		height: 22px;
-		border: 2px solid var(--border);
-		border-radius: 50%;
-		color: var(--panel);
-		font-size: 0.75rem;
+		width: 26px;
+		height: 26px;
+		border: var(--border-thin);
+		font-family: var(--font-mono);
+		font-size: 13px;
 	}
 
 	li.done {
-		color: var(--text);
+		opacity: 1;
 	}
 
 	li.done .mark {
-		border-color: var(--success);
-		background: var(--success);
+		background: var(--green);
 	}
 
 	li.current {
-		color: var(--accent);
-		font-weight: 700;
+		opacity: 1;
+		box-shadow: var(--shadow-sm);
+		transform: translate(-2px, -2px);
 	}
 
 	li.current .mark {
-		border: 3px solid var(--accent);
+		background: var(--yellow);
 	}
 
-	.output {
+	.output-head {
 		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-		min-width: 0;
+		align-items: baseline;
+		gap: 12px;
 	}
 
 	.browser {
 		min-height: 560px;
 		display: flex;
 		flex-direction: column;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		background: var(--panel);
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--white);
+		box-shadow: var(--shadow);
 		overflow: hidden;
 	}
 
 	.chrome {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.75rem;
+		gap: 6px;
+		padding: 10px 12px;
+		border-bottom: var(--border);
 		background: var(--bg);
-		border-bottom: 1px solid var(--border);
 	}
 
 	.chrome > span:not(.url) {
-		width: 8px;
-		height: 8px;
+		width: 14px;
+		height: 14px;
+		border: var(--border-thin);
 		border-radius: 50%;
-		background: var(--border);
+	}
+
+	.chrome > span:nth-child(1) {
+		background: var(--pink);
+	}
+
+	.chrome > span:nth-child(2) {
+		background: var(--yellow);
+	}
+
+	.chrome > span:nth-child(3) {
+		background: var(--green);
 	}
 
 	.url {
 		flex: 1;
-		padding: 0.25rem 0.6rem;
-		border: 1px solid var(--border);
-		border-radius: 4px;
-		background: var(--panel);
-		font-family: ui-monospace, 'Cascadia Code', monospace;
-		font-size: 0.7rem;
-		color: var(--muted);
+		margin-left: 6px;
+		padding: 4px 10px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		font-family: var(--font-mono);
+		font-size: 12px;
+		font-weight: 700;
 	}
 
 	.placeholder {
@@ -359,173 +435,254 @@
 		align-items: center;
 		justify-content: center;
 		margin: 0;
-		padding: 2rem;
-		color: var(--muted);
+		padding: 32px;
+		font-family: var(--font-display);
+		font-size: 24px;
 		text-align: center;
 	}
 
-	.skeleton {
+	.marquee {
+		overflow: hidden;
+		border-bottom: var(--border);
+		background: var(--ink);
+		color: var(--yellow);
+		font-family: var(--font-mono);
+		font-size: 14px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.marquee div {
+		display: inline-flex;
+		gap: 32px;
+		padding: 10px 0;
+		animation: marquee 20s linear infinite;
+	}
+
+	@keyframes marquee {
+		to {
+			transform: translateX(-50%);
+		}
+	}
+
+	.loading {
 		display: flex;
-		flex-direction: column;
-		gap: 0.9rem;
-		padding: 1.5rem 1.5rem 0;
+		justify-content: center;
+		gap: 12px;
+		margin-top: 120px;
 	}
 
-	.skeleton span {
-		border-radius: 6px;
-		background: var(--bg);
-		animation: pulse 1.2s ease-in-out infinite;
+	.loading span {
+		width: 28px;
+		height: 28px;
+		border: var(--border-thin);
+		animation: blink 0.9s steps(1) infinite;
 	}
 
-	@keyframes pulse {
+	.loading span:nth-child(1) {
+		background: var(--yellow);
+	}
+
+	.loading span:nth-child(2) {
+		background: var(--pink);
+		animation-delay: 0.3s;
+	}
+
+	.loading span:nth-child(3) {
+		background: var(--blue);
+		animation-delay: 0.6s;
+	}
+
+	@keyframes blink {
 		50% {
-			opacity: 0.5;
+			opacity: 0.2;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.marquee div,
+		.loading span {
+			animation: none;
 		}
 	}
 
 	.building {
-		margin: 0.9rem 1.5rem;
-		font-weight: 700;
-		color: var(--accent);
+		margin: 20px;
+		font-size: 17px;
+		font-weight: 800;
+		text-align: center;
+	}
+
+	.app {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		padding: 20px;
 	}
 
 	.app-head {
 		display: flex;
 		align-items: center;
-		padding: 0.9rem 1.25rem;
-		background: var(--accent);
-		color: var(--panel);
+		gap: 12px;
 	}
 
-	.app-head span {
+	.app-head strong {
+		font-family: var(--font-display);
+		font-size: 26px;
+		font-weight: 400;
+	}
+
+	.sticker {
 		margin-left: auto;
-		font-size: 0.82rem;
-	}
-
-	.app-body {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1.25rem;
+		padding: 8px 14px;
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--pink);
+		font-family: var(--font-mono);
+		font-size: 14px;
+		font-weight: 700;
+		transform: rotate(-4deg);
 	}
 
 	.add {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-		gap: 0.5rem;
+		gap: 10px;
 		align-items: end;
-		padding: 0.9rem;
-		border-radius: 8px;
+		padding: 16px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
 		background: var(--bg);
 	}
 
 	.add label {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
-		font-size: 0.8rem;
+		gap: 4px;
+		font-family: var(--font-mono);
+		font-size: 13px;
 		font-weight: 700;
-		color: var(--text);
 	}
 
 	.add input {
-		min-height: 40px;
-		padding: 0 0.6rem;
-		font-size: 0.88rem;
-		font-weight: 400;
+		height: 44px;
+		padding: 0 10px;
+		font-family: var(--font-sans);
 	}
 
-	.table {
-		border-top: 2px solid var(--text);
+	.ticket {
+		border: var(--border);
+		border-radius: var(--radius);
+		overflow: hidden;
 	}
 
 	.row {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 120px 140px;
-		gap: 0.75rem;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 130px 150px;
 		align-items: center;
-		padding: 0.6rem 0.75rem;
-		border-bottom: 1px solid var(--border);
-		font-size: 0.88rem;
+		border-bottom: var(--border-thin);
+		font-size: 15px;
+		font-weight: 500;
+	}
+
+	.row:last-child {
+		border-bottom: none;
+	}
+
+	.row > * {
+		padding: 10px 12px;
+		border-right: var(--border-thin);
+	}
+
+	.row > *:last-child {
+		border-right: none;
 	}
 
 	.row.head {
-		background: var(--bg);
-		font-size: 0.8rem;
+		background: var(--yellow);
+		font-family: var(--font-mono);
+		font-size: 13px;
 		font-weight: 700;
-	}
-
-	.muted {
-		color: var(--muted);
-	}
-
-	.center {
-		justify-self: center;
 	}
 
 	.ok {
-		color: var(--success);
-		font-size: 0.8rem;
-		font-weight: 700;
+		align-self: stretch;
+		display: flex;
+		align-items: center;
+		background: var(--green);
+		font-weight: 800;
 	}
 
 	.confirm {
-		min-height: 36px;
-		padding: 0 0.75rem;
-		border: 1px solid var(--accent);
-		border-radius: 6px;
-		background: var(--panel);
-		color: var(--accent);
+		margin: 6px;
+		padding: 8px 10px;
+		border: var(--border-thin);
+		border-radius: var(--radius);
+		background: var(--white);
+		box-shadow: var(--shadow-sm);
+		color: var(--ink);
 		font: inherit;
-		font-size: 0.8rem;
-		font-weight: 700;
+		font-size: 13px;
+		font-weight: 800;
 		cursor: pointer;
 	}
 
+	.confirm:active {
+		transform: translate(4px, 4px);
+		box-shadow: none;
+	}
+
 	dialog {
-		width: min(440px, calc(100vw - 2rem));
+		width: min(460px, calc(100vw - 2rem));
 		box-sizing: border-box;
-		padding: 2rem;
-		border: none;
-		border-top: 4px solid var(--accent);
-		border-radius: 12px;
-		background: var(--panel);
-		color: var(--text);
-		box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+		padding: 28px;
+		border: var(--border);
+		border-radius: var(--radius);
+		background: var(--yellow);
+		color: var(--ink);
+		box-shadow: var(--shadow);
+		font-family: var(--font-sans);
 	}
 
 	dialog[open] {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 14px;
 	}
 
 	dialog::backdrop {
-		background: rgb(15 23 42 / 0.55);
-	}
-
-	dialog h2 {
-		font-size: 1.3rem;
+		background: rgb(17 17 17 / 0.6);
 	}
 
 	dialog p {
 		margin: 0;
-		line-height: 1.7;
-		color: var(--muted);
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 1.6;
 	}
 
 	.ghost {
 		min-height: 44px;
 		border: none;
 		background: transparent;
-		color: var(--muted);
+		color: var(--ink);
 		font: inherit;
+		font-weight: 700;
+		text-decoration: underline;
+		text-underline-offset: 4px;
 		cursor: pointer;
+	}
+
+	button:focus-visible,
+	a:focus-visible {
+		outline: 3px solid var(--blue);
+		outline-offset: 3px;
 	}
 
 	@media (max-width: 900px) {
 		.build {
 			grid-template-columns: 1fr;
+			grid-template-areas: 'request' 'steps' 'output';
 		}
 
 		.add {
@@ -534,6 +691,10 @@
 
 		.row {
 			grid-template-columns: 1fr 1fr;
+		}
+
+		.row > * {
+			border-right: none;
 		}
 	}
 </style>
